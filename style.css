@@ -1766,3 +1766,111 @@ h1, h2, h3, h4 {
     color: #888;
     clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%);
 }
+
+/* ═══════════════════════════════════════
+   🇯🇵 JAPANESE WELCOME TEXT
+═══════════════════════════════════════ */
+.jp-welcome {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: baseline;
+    gap: 0;
+    margin-bottom: 1.4rem;
+    position: relative;
+}
+
+.jp-char {
+    font-family: 'Montserrat', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+    font-size: clamp(1.6rem, 4vw, 2.8rem);
+    font-weight: 900;
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--primary-gold);
+    text-stroke: 1.5px var(--primary-gold);
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(-30px) scale(0.6);
+    animation: jp-drop-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: calc(0.08s * var(--i) + 0.4s);
+    text-shadow:
+        0 0 20px rgba(255, 210, 0, 0.6),
+        0 0 40px rgba(255, 150, 0, 0.3);
+    letter-spacing: 0.05em;
+    line-height: 1;
+    position: relative;
+}
+
+/* Filled flash on land */
+.jp-char.landed {
+    -webkit-text-stroke: 1.5px var(--primary-gold);
+    color: rgba(255, 210, 0, 0.15);
+    animation: jp-glow-pulse 3s ease-in-out infinite;
+    animation-delay: calc(0.08s * var(--i) + 1.5s);
+}
+
+.jp-space {
+    width: 0.4em;
+    -webkit-text-stroke: 0;
+}
+
+@keyframes jp-drop-in {
+    0%   { opacity: 0; transform: translateY(-40px) scale(0.5) rotateX(-60deg); filter: blur(4px); }
+    60%  { opacity: 1; transform: translateY(6px) scale(1.08) rotateX(0deg);   filter: blur(0); }
+    80%  { transform: translateY(-3px) scale(0.97); }
+    100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+@keyframes jp-glow-pulse {
+    0%, 100% {
+        text-shadow: 0 0 15px rgba(255,210,0,0.5), 0 0 30px rgba(255,150,0,0.2);
+        -webkit-text-stroke-color: var(--primary-gold);
+    }
+    50% {
+        text-shadow: 0 0 30px rgba(255,210,0,0.9), 0 0 60px rgba(255,150,0,0.5), 0 0 100px rgba(255,100,0,0.2);
+        -webkit-text-stroke-color: #fff;
+    }
+}
+
+/* Vertical scan line that sweeps across the characters */
+.jp-welcome::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -10%;
+    width: 3px; height: 100%;
+    background: linear-gradient(to bottom, transparent, var(--primary-gold), transparent);
+    opacity: 0;
+    animation: jp-scan 0.6s ease-out forwards;
+    animation-delay: calc(0.08s * 19 + 0.4s); /* fires after last char lands */
+    box-shadow: 0 0 12px var(--primary-gold), 0 0 24px rgba(255,210,0,0.5);
+}
+
+@keyframes jp-scan {
+    0%   { left: -5%; opacity: 0.9; }
+    100% { left: 105%; opacity: 0; }
+}
+
+/* Romaji subtitle */
+.jp-romaji {
+    display: block;
+    width: 100%;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(0.55rem, 1.2vw, 0.72rem);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(255, 210, 0, 0.5);
+    -webkit-text-stroke: 0;
+    margin-top: 0.5rem;
+    opacity: 0;
+    animation: jp-romaji-fade 1s ease forwards;
+    animation-delay: calc(0.08s * 19 + 0.9s);
+}
+
+@keyframes jp-romaji-fade {
+    from { opacity: 0; letter-spacing: 8px; }
+    to   { opacity: 1; letter-spacing: 3px; }
+}
+
+@media (max-width: 768px) {
+    .jp-char { font-size: clamp(1.2rem, 6vw, 1.8rem); }
+}

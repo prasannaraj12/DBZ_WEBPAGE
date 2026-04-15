@@ -261,6 +261,13 @@ const attachCardInteractions = (wrapper) => {
 document.addEventListener("DOMContentLoaded", () => {
     loadCharacters();
     initHero();
+
+    // Mark each jp-char as landed after its drop-in animation ends
+    document.querySelectorAll('.jp-char').forEach(el => {
+        el.addEventListener('animationend', () => {
+            if (!el.classList.contains('landed')) el.classList.add('landed');
+        }, { once: true });
+    });
 });
 
 // Loader logic
