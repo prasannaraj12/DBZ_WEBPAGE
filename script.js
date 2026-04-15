@@ -1439,7 +1439,7 @@ window.runBattle = () => {
     resultEl.classList.remove('visible');
     setTimeout(() => {
         resultEl.innerHTML = `
-            <div class="battle-winner">🏆 ${winner.name} WINS!</div>
+            <div class="battle-winner">${winner.name} WINS</div>
             <div class="battle-verdict">${verdict}</div>
             <div class="battle-quote">${winner.quote}</div>
         `;
