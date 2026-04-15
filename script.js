@@ -618,7 +618,7 @@ const initHero = () => {
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // LAYER 0 — COSMIC BACKGROUND + NEBULA
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    const STAR_COUNT = 150;  // reduced from 300
+    const STAR_COUNT = 150;
     const stars = Array.from({ length: STAR_COUNT }, () => ({
         x: Math.random(), y: Math.random(),
         r: Math.random() * 1.6 + 0.2,
@@ -627,40 +627,52 @@ const initHero = () => {
         spd: Math.random() * 0.012 + 0.003,
     }));
 
+    // ── Offscreen canvas for the static background (redrawn every 4 frames)
+    const bgCanvas = document.createElement('canvas');
+    const bgCtx    = bgCanvas.getContext('2d');
+    let bgFrame = 0;
+    const syncBg = () => { bgCanvas.width = W(); bgCanvas.height = H(); };
+    syncBg();
+    window.addEventListener('resize', syncBg);
+
     const drawBackground = () => {
-        // Base dark radial gradient centred on energy source
-        const cx = W() / 2, cy = H() * 0.6;
-        const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(W(), H()));
-        bg.addColorStop(0,   'rgba(22,5,48,1)');
-        bg.addColorStop(0.35,'rgba(10,2,22,1)');
-        bg.addColorStop(1,   'rgba(0,0,4,1)');
-        ctx.fillStyle = bg;
-        ctx.fillRect(0, 0, W(), H());
+        bgFrame++;
+        // Redraw static bg only every 4 frames — saves ~75% of gradient work
+        if (bgFrame % 4 === 0) {
+            const cx = W() / 2, cy = H() * 0.6;
+            const bg = bgCtx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(W(), H()));
+            bg.addColorStop(0,    'rgba(22,5,48,1)');
+            bg.addColorStop(0.35, 'rgba(10,2,22,1)');
+            bg.addColorStop(1,    'rgba(0,0,4,1)');
+            bgCtx.fillStyle = bg;
+            bgCtx.fillRect(0, 0, W(), H());
 
-        // Slowly drifting nebula veins
-        [
-            [0.15, 0.28, 0.38, 80, 0, 160, 0.13, 0.4],
-            [0.82, 0.35, 0.32, 0, 80, 150, 0.09, 0.35],
-            [0.50, 0.80, 0.50, 200, 100, 10, 0.20, 0.7],
-        ].forEach(([nx, ny, nr, r, g, b, a, tmod]) => {
-            const px = W() * nx, py = H() * ny, rad = Math.max(W(), H()) * nr;
-            const pulse = a * (0.8 + 0.2 * Math.sin(t * tmod));
-            const n = ctx.createRadialGradient(px, py, 0, px, py, rad);
-            n.addColorStop(0,   `rgba(${r},${g},${b},${pulse})`);
-            n.addColorStop(1,    'rgba(0,0,0,0)');
-            ctx.fillStyle = n;
-            ctx.fillRect(0, 0, W(), H());
-        });
+            // Nebula veins — static alpha, no per-frame pulse (saves 3 gradient creates)
+            [
+                [0.15, 0.28, 0.38, 80, 0, 160, 0.10],
+                [0.82, 0.35, 0.32, 0, 80, 150, 0.07],
+                [0.50, 0.80, 0.50, 200, 100, 10, 0.16],
+            ].forEach(([nx, ny, nr, r, g, b, a]) => {
+                const px = W() * nx, py = H() * ny, rad = Math.max(W(), H()) * nr;
+                const n = bgCtx.createRadialGradient(px, py, 0, px, py, rad);
+                n.addColorStop(0, `rgba(${r},${g},${b},${a})`);
+                n.addColorStop(1, 'rgba(0,0,0,0)');
+                bgCtx.fillStyle = n;
+                bgCtx.fillRect(0, 0, W(), H());
+            });
 
-        // Stars
-        for (const s of stars) {
-            s.tw += s.spd;
-            const a = s.a * (0.45 + 0.55 * Math.sin(s.tw));
-            ctx.beginPath();
-            ctx.arc(s.x * W(), s.y * H(), s.r, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(210,225,255,${a})`;
-            ctx.fill();
+            // Stars onto bg canvas
+            for (const s of stars) {
+                s.tw += s.spd * 4; // advance 4 frames worth
+                const a = s.a * (0.45 + 0.55 * Math.sin(s.tw));
+                bgCtx.beginPath();
+                bgCtx.arc(s.x * W(), s.y * H(), s.r, 0, Math.PI * 2);
+                bgCtx.fillStyle = `rgba(210,225,255,${a})`;
+                bgCtx.fill();
+            }
         }
+        // Blit cached bg — single drawImage call instead of 4+ gradient fills
+        ctx.drawImage(bgCanvas, 0, 0);
     };
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -793,33 +805,24 @@ const initHero = () => {
     const drawGroundPool = () => {
         const cx = W() / 2;
         const poolW = W() * 0.55;
-        const poolH = H() * 0.06;
-        const py = H() - poolH * 0.5;
         const beat = 0.6 + 0.4 * Math.abs(Math.sin(t * 1.6));
 
         ctx.save();
         ctx.globalCompositeOperation = 'screen';
 
-        // Oval glow pool on the "ground"
-        const pool = ctx.createRadialGradient(cx, H(), 0, cx, H(), poolW);
-        pool.addColorStop(0,   `rgba(255,230,100,${0.55 * beat})`);
-        pool.addColorStop(0.2, `rgba(255,160,20,${0.35 * beat})`);
-        pool.addColorStop(0.5, `rgba(220,60,0,${0.18 * beat})`);
-        pool.addColorStop(1,    'rgba(0,0,0,0)');
-        ctx.fillStyle = pool;
-        ctx.fillRect(0, H() * 0.85, W(), H() * 0.15);
+        // Simple layered fills — no gradient creation, no random shimmer lines
+        ctx.fillStyle = `rgba(255,230,100,${0.18 * beat})`;
+        ctx.beginPath(); ctx.ellipse(cx, H(), poolW * 0.4, H() * 0.04, 0, 0, Math.PI * 2);
+        ctx.fill();
 
-        // Heat shimmer lines inside the pool
-        ctx.lineWidth = 1.5;
-        for (let i = 0; i < 8; i++) {
-            const lx = cx + (Math.random() - 0.5) * poolW * 1.4;
-            const la = (0.08 + 0.08 * beat) * Math.random();
-            ctx.beginPath();
-            ctx.moveTo(lx, H());
-            ctx.lineTo(lx + (Math.random() - 0.5) * 30, H() - poolH * (0.5 + Math.random() * 0.5));
-            ctx.strokeStyle = `rgba(255,240,180,${la})`;
-            ctx.stroke();
-        }
+        ctx.fillStyle = `rgba(255,160,20,${0.10 * beat})`;
+        ctx.beginPath(); ctx.ellipse(cx, H(), poolW * 0.7, H() * 0.07, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = `rgba(220,60,0,${0.05 * beat})`;
+        ctx.beginPath(); ctx.ellipse(cx, H(), poolW, H() * 0.10, 0, 0, Math.PI * 2);
+        ctx.fill();
+
         ctx.restore();
     };
 
@@ -860,22 +863,25 @@ const initHero = () => {
             ctx.save();
             ctx.globalCompositeOperation = 'screen';
 
-            // Main ring
+            // Main ring — no shadowBlur, use lineWidth for visual weight
             ctx.beginPath();
             ctx.arc(cx, cy, s.r, 0, Math.PI * 2);
             ctx.strokeStyle = `rgba(${s.color},${Math.max(0, s.alpha)})`;
             ctx.lineWidth   = s.thick;
-            ctx.shadowColor = `rgba(${s.color},0.9)`;
-            ctx.shadowBlur  = 30;
             ctx.stroke();
 
-            // Twin faint secondary ring 12px behind
+            // Soft outer glow ring (wider, more transparent — fakes bloom without shadowBlur)
+            ctx.beginPath();
+            ctx.arc(cx, cy, s.r, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(${s.color},${Math.max(0, s.alpha * 0.25)})`;
+            ctx.lineWidth   = s.thick * 4;
+            ctx.stroke();
+
             if (s.twin && s.r > 12) {
                 ctx.beginPath();
                 ctx.arc(cx, cy, s.r - 12, 0, Math.PI * 2);
-                ctx.strokeStyle = `rgba(${s.color},${Math.max(0, s.alpha * 0.35)})`;
+                ctx.strokeStyle = `rgba(${s.color},${Math.max(0, s.alpha * 0.3)})`;
                 ctx.lineWidth   = s.thick * 0.5;
-                ctx.shadowBlur  = 12;
                 ctx.stroke();
             }
             ctx.restore();
@@ -914,6 +920,8 @@ const initHero = () => {
     const drawKiStreams = () => {
         ctx.save();
         ctx.globalCompositeOperation = 'screen';
+        // No shadowBlur — use simple alpha fade for glow effect (much faster)
+        ctx.shadowBlur = 0;
 
         for (let i = 0; i < kiParticles.length; i++) {
             const p = kiParticles[i];
@@ -930,27 +938,20 @@ const initHero = () => {
             p.trail.push({ x: p.x, y: p.y });
             if (p.trail.length > p.maxT) p.trail.shift();
 
-            // Thick glowing trail that fades
-            for (let j = 0; j < p.trail.length - 1; j++) {
-                const ta = (j / p.trail.length) * p.a * 0.7;
-                const lw = p.r * (j / p.trail.length) * 2.5;
+            // Draw trail as a single polyline — one beginPath per particle, not per segment
+            if (p.trail.length > 1) {
                 ctx.beginPath();
-                ctx.moveTo(p.trail[j].x, p.trail[j].y);
-                ctx.lineTo(p.trail[j+1].x, p.trail[j+1].y);
-                ctx.strokeStyle = `rgba(${p.color},${ta})`;
-                ctx.lineWidth   = lw;
-                ctx.shadowColor = `rgba(${p.color},0.6)`;
-                ctx.shadowBlur  = 8;
+                ctx.moveTo(p.trail[0].x, p.trail[0].y);
+                for (let j = 1; j < p.trail.length; j++) ctx.lineTo(p.trail[j].x, p.trail[j].y);
+                ctx.strokeStyle = `rgba(${p.color},${p.a * 0.5})`;
+                ctx.lineWidth   = p.r * 1.5;
                 ctx.stroke();
             }
 
-            // Bright head glow
-            const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 4);
-            g.addColorStop(0, `rgba(${p.color},${p.a})`);
-            g.addColorStop(1, `rgba(${p.color},0)`);
+            // Head dot — simple filled circle, no radialGradient
             ctx.beginPath();
-            ctx.arc(p.x, p.y, p.r * 4, 0, Math.PI * 2);
-            ctx.fillStyle = g;
+            ctx.arc(p.x, p.y, p.r * 2.5, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${p.color},${p.a})`;
             ctx.fill();
 
             p.x += p.vx; p.y += p.vy;
@@ -988,7 +989,7 @@ const initHero = () => {
             ctx.fillStyle = g; ctx.fill();
         });
 
-        // ── Orbital plasma rings (tilted ellipses to fake 3D)
+        // ── Orbital plasma rings — no shadowBlur, use layered strokes for glow
         for (const orb of ORBITALS) {
             orb.spd !== 0 && (orb._angle = (orb._angle || 0) + orb.spd);
             const ang = orb._angle || 0;
@@ -997,21 +998,21 @@ const initHero = () => {
             ctx.translate(cx, cy);
             ctx.rotate(ang);
             ctx.scale(1, Math.max(0.12, scaleY));
-            ctx.beginPath();
-            ctx.arc(0, 0, orb.r, 0, Math.PI * 2);
-            ctx.strokeStyle = `rgba(${orb.color},${orb.a * (0.7 + 0.3 * beat)})`;
-            ctx.lineWidth   = orb.width;
-            ctx.shadowColor = `rgba(${orb.color},0.8)`;
-            ctx.shadowBlur  = 22;
+            const orbAlpha = orb.a * (0.7 + 0.3 * beat);
+            // Glow layer (wide, faint)
+            ctx.beginPath(); ctx.arc(0, 0, orb.r, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(${orb.color},${orbAlpha * 0.3})`;
+            ctx.lineWidth   = orb.width * 6;
             ctx.stroke();
-
-            // Bright spark on the ring
-            const sx = orb.r, sy = 0;
-            const sg = ctx.createRadialGradient(sx, sy, 0, sx, sy, 6);
-            sg.addColorStop(0, `rgba(${orb.color},1)`);
-            sg.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.beginPath(); ctx.arc(sx, sy, 6, 0, Math.PI * 2);
-            ctx.fillStyle = sg; ctx.fill();
+            // Core layer (thin, bright)
+            ctx.beginPath(); ctx.arc(0, 0, orb.r, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(${orb.color},${orbAlpha})`;
+            ctx.lineWidth   = orb.width;
+            ctx.stroke();
+            // Spark dot
+            ctx.beginPath(); ctx.arc(orb.r, 0, 4, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${orb.color},1)`;
+            ctx.fill();
             ctx.restore();
         }
 
@@ -1041,27 +1042,23 @@ const initHero = () => {
     const arcs = [];
     let arcTimer = 0;
 
-    // Recursive fractal lightning branch
+    // Recursive fractal lightning — no shadowBlur, depth capped at 2
     const drawBranch = (x1, y1, x2, y2, depth, alpha, col) => {
-        if (depth <= 0 || alpha < 0.04) return;
+        if (depth <= 0 || alpha < 0.05) return;
         const mx = (x1 + x2) / 2 + (Math.random() - 0.5) * 60;
         const my = (y1 + y2) / 2 + (Math.random() - 0.5) * 60;
         ctx.beginPath();
-        ctx.moveTo(x1, y1); ctx.lineTo(mx, my);
+        ctx.moveTo(x1, y1); ctx.lineTo(mx, my); ctx.lineTo(x2, y2);
         ctx.strokeStyle = `rgba(${col},${alpha})`;
-        ctx.lineWidth = depth * 0.8;
-        ctx.shadowColor = `rgba(${col},1)`; ctx.shadowBlur = 18;
+        ctx.lineWidth = Math.max(0.5, depth * 0.7);
         ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(x2, y2);
-        ctx.stroke();
-        // Random branches
-        if (Math.random() > 0.5) {
-            const bx = mx + Math.cos(Math.random() * Math.PI * 2) * 80;
-            const by = my + Math.sin(Math.random() * Math.PI * 2) * 80;
-            drawBranch(mx, my, bx, by, depth - 1, alpha * 0.55, col);
+        if (Math.random() > 0.6) {
+            const bx = mx + Math.cos(Math.random() * Math.PI * 2) * 60;
+            const by = my + Math.sin(Math.random() * Math.PI * 2) * 60;
+            drawBranch(mx, my, bx, by, depth - 1, alpha * 0.5, col);
         }
-        drawBranch(x1, y1, mx, my, depth - 1, alpha * 0.7, col);
-        drawBranch(mx, my, x2, y2, depth - 1, alpha * 0.7, col);
+        drawBranch(x1, y1, mx, my, depth - 1, alpha * 0.65, col);
+        drawBranch(mx, my, x2, y2, depth - 1, alpha * 0.65, col);
     };
 
     const spawnArc = () => {
@@ -1079,17 +1076,15 @@ const initHero = () => {
 
     const drawArcs = () => {
         arcTimer++;
-        if (arcTimer > 6 + Math.random() * 10) {
+        if (arcTimer > 18 + Math.random() * 20) {  // spawn less often
             spawnArc();
-            if (Math.random() > 0.5) spawnArc();
             arcTimer = 0;
         }
         ctx.save();
         ctx.globalCompositeOperation = 'screen';
         for (let i = arcs.length - 1; i >= 0; i--) {
             const a = arcs[i];
-            ctx.shadowBlur = 0;
-            drawBranch(a.x1, a.y1, a.x2, a.y2, 3, a.life * 0.85, a.color);
+            drawBranch(a.x1, a.y1, a.x2, a.y2, 2, a.life * 0.85, a.color);  // depth 2 not 3
             a.life -= a.decay;
             if (a.life <= 0) arcs.splice(i, 1);
         }
@@ -1115,16 +1110,21 @@ const initHero = () => {
     const drawEmbers = () => {
         ctx.save();
         ctx.globalCompositeOperation = 'screen';
+        ctx.shadowBlur = 0;
         for (const e of embers) {
             e.x += e.vx + noise1(e.y * 10, t) * 0.001;
             e.y += e.vy;
             if (e.y < -0.05) { e.y = 0.95 + Math.random() * 0.05; e.x = 0.3 + Math.random() * 0.4; }
             if (e.x < 0 || e.x > 1) e.vx *= -1;
-            const g = ctx.createRadialGradient(e.x*W(), e.y*H(), 0, e.x*W(), e.y*H(), e.r * 2.5);
-            g.addColorStop(0, `rgba(${e.col},${e.a})`);
-            g.addColorStop(1, `rgba(${e.col},0)`);
-            ctx.beginPath(); ctx.arc(e.x*W(), e.y*H(), e.r * 2.5, 0, Math.PI * 2);
-            ctx.fillStyle = g; ctx.fill();
+            const ex = e.x * W(), ey = e.y * H();
+            // Outer soft glow (large, faint circle — no gradient needed)
+            ctx.beginPath(); ctx.arc(ex, ey, e.r * 3, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${e.col},${e.a * 0.25})`;
+            ctx.fill();
+            // Bright core
+            ctx.beginPath(); ctx.arc(ex, ey, e.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${e.col},${e.a})`;
+            ctx.fill();
         }
         ctx.restore();
     };
