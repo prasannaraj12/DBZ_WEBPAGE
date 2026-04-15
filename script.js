@@ -1920,6 +1920,7 @@ window.runBattle = () => {
     else verdict = `${winner.name} dominates. ${loser.name} never stood a chance.`;
 
     // Launch cinematic
+    console.log('Launching battle cinematic:', f1.name, 'vs', f2.name, '| Winner:', winner.name);
     launchBattleCinematic(f1, f2, winner, verdict);
 };
 
