@@ -1891,6 +1891,7 @@ window.selectFighter = (slot, idx) => {
 };
 
 window.runBattle = () => {
+    console.log('runBattle called');
     const [i1, i2] = selectedFighter;
     const resultEl = document.getElementById('battle-result');
 
