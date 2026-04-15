@@ -56,6 +56,47 @@
         </div>
     </div>
 
+    <!-- ═══ SAGA MODAL ═══ -->
+    <div id="saga-modal" class="saga-modal">
+        <div class="saga-modal-overlay" onclick="closeSagaModal()"></div>
+        <div class="saga-modal-panel" id="saga-modal-panel">
+            <button class="saga-modal-close" onclick="closeSagaModal()">✕</button>
+            <div class="saga-modal-header" id="saga-modal-header">
+                <div class="saga-modal-num" id="saga-modal-num">01</div>
+                <div>
+                    <div class="saga-modal-eyebrow" id="saga-modal-eyebrow">ARC</div>
+                    <h2 class="saga-modal-title" id="saga-modal-title">SAGA NAME</h2>
+                    <div class="saga-modal-villain-tag" id="saga-modal-villain-tag">Villain</div>
+                </div>
+            </div>
+            <div class="saga-modal-body">
+                <div class="saga-modal-grid">
+                    <div class="saga-modal-block">
+                        <div class="saga-modal-block-label">📖 ARC SUMMARY</div>
+                        <p class="saga-modal-text" id="saga-modal-summary"></p>
+                    </div>
+                    <div class="saga-modal-block">
+                        <div class="saga-modal-block-label">⚔️ BEST FIGHT</div>
+                        <p class="saga-modal-text" id="saga-modal-fight"></p>
+                    </div>
+                    <div class="saga-modal-block">
+                        <div class="saga-modal-block-label">⚡ TRANSFORMATIONS</div>
+                        <div class="saga-modal-transforms" id="saga-modal-transforms"></div>
+                    </div>
+                    <div class="saga-modal-block">
+                        <div class="saga-modal-block-label">🌟 ICONIC MOMENT</div>
+                        <p class="saga-modal-text" id="saga-modal-iconic"></p>
+                    </div>
+                </div>
+                <div class="saga-modal-power-section">
+                    <div class="saga-modal-block-label">📈 POWER LEVEL EVOLUTION</div>
+                    <div class="saga-power-bars" id="saga-power-bars"></div>
+                </div>
+                <div class="saga-modal-quote" id="saga-modal-quote"></div>
+            </div>
+        </div>
+    </div>
+
     <nav class="navbar">
         <div class="logo">DRAGON BALL <span>LEGENDS</span></div>
         <ul class="nav-links">
@@ -64,6 +105,8 @@
             <li><a href="#dragonballs">Dragon Balls</a></li>
             <li><a href="#scanner">Power Level</a></li>
             <li><a href="#saga">Saga</a></li>
+            <li><a href="#battle">Battle</a></li>
+            <li><a href="#transforms">Forms</a></li>
         </ul>
         <div class="nav-accent-cut"></div>
     </nav>
@@ -215,58 +258,175 @@
 
         <!-- ═══ 📜 DBZ SAGA TIMELINE ═══ -->
         <section id="saga" class="parallax-section saga-section">
-            <div style="width:100%;padding:0 2rem;">
-                <h2 class="section-title" style="text-align:center;margin-bottom:3rem;">THE DBZ <span style="color:var(--primary-orange);-webkit-text-stroke:0px;transform:none;">SAGA</span></h2>
+            <div class="saga-bg-overlay" id="saga-bg-overlay"></div>
+            <div style="width:100%;padding:0 2rem;position:relative;z-index:2;">
+                <h2 class="section-title" style="text-align:center;margin-bottom:0.5rem;">THE DBZ <span style="color:var(--primary-orange);-webkit-text-stroke:0px;transform:none;">SAGA</span></h2>
+                <p style="text-align:center;color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:0.8rem;letter-spacing:3px;margin-bottom:2.5rem;text-transform:uppercase;">Click any saga to enter the arc</p>
                 <div class="saga-timeline">
-                    <div class="saga-card" style="--saga-color:#FF6600;">
+                    <div class="saga-card" data-saga="saiyan" style="--saga-color:#FF6600;" onclick="openSagaModal('saiyan')">
+                        <div class="saga-card-bg" style="background:linear-gradient(135deg,rgba(255,102,0,0.15),rgba(180,40,0,0.3));"></div>
+                        <div class="saga-aura" style="--aura-color:#FF6600;"></div>
                         <div class="saga-num">01</div>
                         <h3 class="saga-name">SAIYAN SAGA</h3>
                         <div class="saga-villain">Raditz · Nappa · Vegeta</div>
                         <p class="saga-desc">Goku discovers his Saiyan heritage. The Z Fighters unite to face alien invaders. A new era begins.</p>
+                        <div class="saga-quote">"What does a Saiyan's power level mean to you now?"</div>
                         <div class="saga-year">Age 761</div>
+                        <div class="saga-click-hint">TAP TO ENTER ▶</div>
                     </div>
-                    <div class="saga-card" style="--saga-color:#9B59B6;">
+                    <div class="saga-card" data-saga="namek" style="--saga-color:#9B59B6;" onclick="openSagaModal('namek')">
+                        <div class="saga-card-bg" style="background:linear-gradient(135deg,rgba(155,89,182,0.15),rgba(80,0,120,0.3));"></div>
+                        <div class="saga-aura" style="--aura-color:#9B59B6;"></div>
                         <div class="saga-num">02</div>
                         <h3 class="saga-name">NAMEK SAGA</h3>
                         <div class="saga-villain">Frieza · Ginyu Force</div>
                         <p class="saga-desc">Planet Namek. Frieza reveals his final form. Goku's rage ignites the legendary Super Saiyan awakening.</p>
+                        <div class="saga-quote">"I am the hope of the universe... I am the answer to all living things."</div>
                         <div class="saga-year">Age 762</div>
+                        <div class="saga-click-hint">TAP TO ENTER ▶</div>
                     </div>
-                    <div class="saga-card" style="--saga-color:#27AE60;">
+                    <div class="saga-card" data-saga="cell" style="--saga-color:#27AE60;" onclick="openSagaModal('cell')">
+                        <div class="saga-card-bg" style="background:linear-gradient(135deg,rgba(39,174,96,0.15),rgba(0,80,30,0.3));"></div>
+                        <div class="saga-aura" style="--aura-color:#27AE60;"></div>
                         <div class="saga-num">03</div>
                         <h3 class="saga-name">CELL SAGA</h3>
                         <div class="saga-villain">Cell · Dr. Gero · Androids</div>
                         <p class="saga-desc">A bio-android from the future reaches perfection. Teen Gohan's hidden power erupts at the Cell Games.</p>
+                        <div class="saga-quote">"It's not about the power level. It's about the will to protect."</div>
                         <div class="saga-year">Age 767</div>
+                        <div class="saga-click-hint">TAP TO ENTER ▶</div>
                     </div>
-                    <div class="saga-card" style="--saga-color:#E91E63;">
+                    <div class="saga-card" data-saga="buu" style="--saga-color:#E91E63;" onclick="openSagaModal('buu')">
+                        <div class="saga-card-bg" style="background:linear-gradient(135deg,rgba(233,30,99,0.15),rgba(120,0,60,0.3));"></div>
+                        <div class="saga-aura" style="--aura-color:#E91E63;"></div>
                         <div class="saga-num">04</div>
                         <h3 class="saga-name">BUU SAGA</h3>
                         <div class="saga-villain">Majin Buu · Babidi · Dabura</div>
                         <p class="saga-desc">Ancient evil Majin Buu awakens. Vegito and Gogeta clash. The fate of existence hangs by a Spirit Bomb.</p>
+                        <div class="saga-quote">"I am the Saiyan who came from Earth, the Super Saiyan Son Goku!"</div>
                         <div class="saga-year">Age 774</div>
+                        <div class="saga-click-hint">TAP TO ENTER ▶</div>
                     </div>
-                    <div class="saga-card" style="--saga-color:#00BCD4;">
+                    <div class="saga-card" data-saga="top" style="--saga-color:#00BCD4;" onclick="openSagaModal('top')">
+                        <div class="saga-card-bg" style="background:linear-gradient(135deg,rgba(0,188,212,0.15),rgba(0,60,100,0.3));"></div>
+                        <div class="saga-aura" style="--aura-color:#00BCD4;"></div>
                         <div class="saga-num">05</div>
                         <h3 class="saga-name">TOURNAMENT OF POWER</h3>
                         <div class="saga-villain">Jiren · Universe 11</div>
                         <p class="saga-desc">8 universes clash. Goku's Ultra Instinct awakens. Only one universe can survive the Tournament of Power.</p>
+                        <div class="saga-quote">"Ultra Instinct... the state even the Gods cannot master."</div>
                         <div class="saga-year">Age 780</div>
+                        <div class="saga-click-hint">TAP TO ENTER ▶</div>
                     </div>
-                    <div class="saga-card" style="--saga-color:#F1C40F;">
+                    <div class="saga-card" data-saga="superhero" style="--saga-color:#F1C40F;" onclick="openSagaModal('superhero')">
+                        <div class="saga-card-bg" style="background:linear-gradient(135deg,rgba(241,196,15,0.15),rgba(120,80,0,0.3));"></div>
+                        <div class="saga-aura" style="--aura-color:#F1C40F;"></div>
                         <div class="saga-num">06</div>
                         <h3 class="saga-name">SUPER HERO ARC</h3>
                         <div class="saga-villain">Cell Max · Gammas</div>
                         <p class="saga-desc">Gohan and Piccolo take center stage. Beast Gohan and Orange Piccolo are born as new legends.</p>
+                        <div class="saga-quote">"This is my true power — Beast Gohan has arrived!"</div>
                         <div class="saga-year">Age 784</div>
+                        <div class="saga-click-hint">TAP TO ENTER ▶</div>
                     </div>
-                    <div class="saga-card" style="--saga-color:#FF4444;">
+                    <div class="saga-card" data-saga="daima" style="--saga-color:#FF4444;" onclick="openSagaModal('daima')">
+                        <div class="saga-card-bg" style="background:linear-gradient(135deg,rgba(255,68,68,0.15),rgba(100,0,0,0.3));"></div>
+                        <div class="saga-aura" style="--aura-color:#FF4444;"></div>
                         <div class="saga-num">07</div>
                         <h3 class="saga-name">DAIMA</h3>
                         <div class="saga-villain">Demon Realm</div>
                         <p class="saga-desc">Goku and friends are turned small by a wish on the Super Dragon Balls. A new adventure in the Demon Realm.</p>
+                        <div class="saga-quote">"Even small, the heart of a Saiyan never shrinks."</div>
                         <div class="saga-year">Age 785+</div>
+                        <div class="saga-click-hint">TAP TO ENTER ▶</div>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ ⚔️ BATTLE SIMULATOR ═══ -->
+        <section id="battle" class="parallax-section battle-section">
+            <div class="battle-bg-fx"></div>
+            <div class="container relative-z" style="text-align:center;max-width:900px;margin:auto;">
+                <h2 class="section-title">BATTLE <span style="color:#FF4444;-webkit-text-stroke:0px;transform:none;">SIMULATOR</span></h2>
+                <p style="color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:0.8rem;letter-spacing:2px;margin-bottom:2.5rem;text-transform:uppercase;">Select two warriors and see who wins</p>
+                <div class="battle-arena">
+                    <div class="fighter-select-wrap">
+                        <div class="fighter-label">FIGHTER 1</div>
+                        <div class="fighter-card" id="fighter1-card">
+                            <div class="fighter-name" id="fighter1-name">???</div>
+                            <div class="fighter-power" id="fighter1-power">--</div>
+                        </div>
+                        <div class="fighter-grid" id="fighter1-grid"></div>
+                    </div>
+                    <div class="vs-divider">
+                        <div class="vs-text">VS</div>
+                        <div class="vs-lightning">⚡</div>
+                    </div>
+                    <div class="fighter-select-wrap">
+                        <div class="fighter-label">FIGHTER 2</div>
+                        <div class="fighter-card" id="fighter2-card">
+                            <div class="fighter-name" id="fighter2-name">???</div>
+                            <div class="fighter-power" id="fighter2-power">--</div>
+                        </div>
+                        <div class="fighter-grid" id="fighter2-grid"></div>
+                    </div>
+                </div>
+                <button class="battle-btn" id="battle-btn" onclick="runBattle()">⚡ START BATTLE</button>
+                <div class="battle-result" id="battle-result"></div>
+            </div>
+        </section>
+
+        <!-- ═══ 🔥 TRANSFORMATION TREE ═══ -->
+        <section id="transforms" class="parallax-section transform-section">
+            <div class="container relative-z" style="text-align:center;">
+                <h2 class="section-title">TRANSFORMATION <span style="color:var(--primary-gold);-webkit-text-stroke:0px;transform:none;">TREE</span></h2>
+                <p style="color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:0.8rem;letter-spacing:2px;margin-bottom:3rem;text-transform:uppercase;">Goku's power evolution</p>
+                <div class="transform-tree" id="transform-tree">
+                    <div class="transform-node" data-form="base" data-power="10,000" data-color="#ffffff">
+                        <div class="transform-orb" style="--t-color:#aaaaaa;"></div>
+                        <div class="transform-label">BASE</div>
+                        <div class="transform-power">10,000</div>
+                    </div>
+                    <div class="transform-arrow">▶</div>
+                    <div class="transform-node" data-form="ssj" data-power="500,000" data-color="#FFD700">
+                        <div class="transform-orb" style="--t-color:#FFD700;"></div>
+                        <div class="transform-label">SUPER SAIYAN</div>
+                        <div class="transform-power">500,000</div>
+                    </div>
+                    <div class="transform-arrow">▶</div>
+                    <div class="transform-node" data-form="ssj2" data-power="2,000,000" data-color="#FFE44D">
+                        <div class="transform-orb" style="--t-color:#FFE44D;"></div>
+                        <div class="transform-label">SSJ2</div>
+                        <div class="transform-power">2,000,000</div>
+                    </div>
+                    <div class="transform-arrow">▶</div>
+                    <div class="transform-node" data-form="ssj3" data-power="8,000,000" data-color="#FFEE88">
+                        <div class="transform-orb" style="--t-color:#FFEE88;"></div>
+                        <div class="transform-label">SSJ3</div>
+                        <div class="transform-power">8,000,000</div>
+                    </div>
+                    <div class="transform-arrow">▶</div>
+                    <div class="transform-node" data-form="god" data-power="∞ (God)" data-color="#FF4466">
+                        <div class="transform-orb" style="--t-color:#FF4466;"></div>
+                        <div class="transform-label">SSJ GOD</div>
+                        <div class="transform-power">∞ (God)</div>
+                    </div>
+                    <div class="transform-arrow">▶</div>
+                    <div class="transform-node" data-form="blue" data-power="∞ (Blue)" data-color="#00AAFF">
+                        <div class="transform-orb" style="--t-color:#00AAFF;"></div>
+                        <div class="transform-label">SSJ BLUE</div>
+                        <div class="transform-power">∞ (Blue)</div>
+                    </div>
+                    <div class="transform-arrow">▶</div>
+                    <div class="transform-node" data-form="ui" data-power="BEYOND GODS" data-color="#C0C0FF">
+                        <div class="transform-orb" style="--t-color:#C0C0FF;"></div>
+                        <div class="transform-label">ULTRA INSTINCT</div>
+                        <div class="transform-power">BEYOND GODS</div>
+                    </div>
+                </div>
+                <div class="transform-detail" id="transform-detail">
+                    <p style="color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:0.85rem;">Click a form to learn more</p>
                 </div>
             </div>
         </section>

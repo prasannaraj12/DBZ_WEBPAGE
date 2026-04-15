@@ -1172,3 +1172,372 @@ const initHero = () => {
         });
     }
 };
+
+// ═══════════════════════════════════════════════════════════
+// 📖 SAGA MODAL DATA + LOGIC
+// ═══════════════════════════════════════════════════════════
+const sagaData = {
+    saiyan: {
+        num: '01', color: '#FF6600', title: 'SAIYAN SAGA', year: 'Age 761',
+        villain: 'Raditz · Nappa · Vegeta',
+        summary: 'Goku learns he is a Saiyan warrior sent to conquer Earth. After sacrificing himself to defeat Raditz, he trains in the afterlife under King Kai. The Z Fighters battle Nappa and Vegeta in a desperate fight that costs Yamcha, Tien, Chiaotzu, and Piccolo their lives.',
+        fight: 'Goku vs Vegeta — the first true Saiyan clash. Goku pushes to Kaioken x4, Vegeta transforms into a Great Ape. Yajirobe cuts the tail. Gohan\'s hidden power emerges.',
+        transforms: ['Kaioken', 'Kaioken x4', 'Great Ape (Vegeta)', 'Great Ape (Gohan)'],
+        iconic: 'Goku uses the Spirit Bomb against Vegeta, but it\'s Gohan\'s Great Ape transformation and Krillin\'s mercy that ultimately end the battle — setting up Vegeta\'s redemption arc.',
+        quote: '"Kakarot... you are the mightiest Saiyan of all." — Vegeta',
+        powers: [
+            { label: 'Goku (Kaioken)', pct: 38 },
+            { label: 'Vegeta (Base)', pct: 52 },
+            { label: 'Vegeta (Ape)', pct: 85 },
+            { label: 'Gohan (Ape)', pct: 70 },
+        ]
+    },
+    namek: {
+        num: '02', color: '#9B59B6', title: 'NAMEK SAGA', year: 'Age 762',
+        villain: 'Frieza · Ginyu Force',
+        summary: 'Gohan, Krillin, and Bulma travel to Planet Namek to revive their fallen friends. Frieza, the galactic tyrant, seeks the Namekian Dragon Balls for immortality. The Ginyu Force arrives. Goku heals in a medical pod and arrives just in time.',
+        fight: 'Goku SSJ vs Frieza 100% — the most iconic fight in anime history. Namek\'s core explodes. Goku\'s rage at Krillin\'s death triggers the first Super Saiyan transformation in 1,000 years.',
+        transforms: ['Super Saiyan (Goku)', 'Frieza Final Form', 'Frieza 100%', 'Ginyu Force Poses'],
+        iconic: 'Krillin is killed by Frieza. Goku\'s grief and rage ignite a golden aura — the legendary Super Saiyan awakens for the first time in a millennium. The ground shakes. The sky turns gold.',
+        quote: '"I am the hope of the universe. I am the answer to all living things that cry out for peace." — Goku SSJ',
+        powers: [
+            { label: 'Frieza (Final)', pct: 90 },
+            { label: 'Goku (Base)', pct: 45 },
+            { label: 'Goku (SSJ)', pct: 95 },
+            { label: 'Frieza (100%)', pct: 88 },
+        ]
+    },
+    cell: {
+        num: '03', color: '#27AE60', title: 'CELL SAGA', year: 'Age 767',
+        villain: 'Cell · Dr. Gero · Androids',
+        summary: 'Androids 17 and 18 are activated. A bio-android named Cell arrives from the future, absorbing humans to grow stronger. After absorbing both androids, Cell reaches his Perfect Form and hosts the Cell Games — a tournament where he fights Earth\'s greatest warriors.',
+        fight: 'SSJ2 Gohan vs Perfect Cell — Gohan\'s rage unlocks Super Saiyan 2 for the first time. The Father-Son Kamehameha, with Goku\'s spirit guiding from the afterlife, destroys Cell.',
+        transforms: ['Super Saiyan 2 (Gohan)', 'Perfect Cell', 'Semi-Perfect Cell', 'Cell Jr.'],
+        iconic: 'Android 16\'s head is crushed by Cell. Gohan\'s suppressed rage finally explodes — his hair stands fully upright, electricity crackles around him. SSJ2 is born. Cell is terrified.',
+        quote: '"I\'m not the same Gohan I was before. I\'m going to end this." — SSJ2 Gohan',
+        powers: [
+            { label: 'Perfect Cell', pct: 80 },
+            { label: 'Gohan (SSJ)', pct: 72 },
+            { label: 'Gohan (SSJ2)', pct: 98 },
+            { label: 'Goku (SSJ)', pct: 75 },
+        ]
+    },
+    buu: {
+        num: '04', color: '#E91E63', title: 'BUU SAGA', year: 'Age 774',
+        villain: 'Majin Buu · Babidi · Dabura',
+        summary: 'The wizard Babidi resurrects Majin Buu, an ancient evil that once destroyed galaxies. Buu absorbs Gotenks, Piccolo, and Gohan. Vegito is formed to fight Super Buu. Goku\'s Super Spirit Bomb finally destroys Kid Buu after a desperate battle on the Sacred World of the Kais.',
+        fight: 'Vegito vs Super Buu — the most powerful fusion ever created. Goku vs Kid Buu on the Sacred World — raw Saiyan spirit vs pure evil, ending with the Spirit Bomb.',
+        transforms: ['SSJ3 (Goku)', 'Majin Vegeta', 'Super Buu', 'Kid Buu', 'Vegito SSJ', 'Gotenks SSJ3'],
+        iconic: 'Vegeta destroys his own halo to give Goku energy for the Spirit Bomb. "I\'m sorry, Kakarot. This is the only thing I can do." — the most emotional Vegeta moment in the series.',
+        quote: '"I\'m sorry, Kakarot. This is the only thing I can do." — Vegeta',
+        powers: [
+            { label: 'Kid Buu', pct: 85 },
+            { label: 'Goku (SSJ3)', pct: 80 },
+            { label: 'Vegito (SSJ)', pct: 99 },
+            { label: 'Super Buu', pct: 92 },
+        ]
+    },
+    top: {
+        num: '05', color: '#00BCD4', title: 'TOURNAMENT OF POWER', year: 'Age 780',
+        villain: 'Jiren · Universe 11',
+        summary: 'The Omni-Kings host a tournament of 8 universes. The losing universes are erased. Universe 7 assembles its 10 strongest fighters. Goku pushes beyond his limits against Jiren, awakening Ultra Instinct — a state even the Gods of Destruction cannot master.',
+        fight: 'Mastered Ultra Instinct Goku vs Jiren — the pinnacle of Dragon Ball Super. Goku\'s silver-eyed form overwhelms Jiren until Jiren\'s full power breaks through. Android 17\'s sacrifice. Frieza and Goku\'s final combo.',
+        transforms: ['Ultra Instinct Sign', 'Mastered Ultra Instinct', 'Jiren Full Power', 'SSB Kaioken x20', 'Golden Frieza'],
+        iconic: 'Goku\'s Ultra Instinct awakens inside the Spirit Bomb. His hair turns silver. Every God in the arena stands in awe. The Grand Priest smiles. "That\'s... Ultra Instinct."',
+        quote: '"Ultra Instinct... the state even the Gods cannot master." — Whis',
+        powers: [
+            { label: 'Jiren (Base)', pct: 88 },
+            { label: 'Goku (SSB KKx20)', pct: 82 },
+            { label: 'Goku (UI Sign)', pct: 91 },
+            { label: 'Goku (MUI)', pct: 99 },
+            { label: 'Jiren (Full)', pct: 97 },
+        ]
+    },
+    superhero: {
+        num: '06', color: '#F1C40F', title: 'SUPER HERO ARC', year: 'Age 784',
+        villain: 'Cell Max · Gamma 1 & 2',
+        summary: 'The Red Ribbon Army is revived by Dr. Hedo, who creates the Gamma androids. Piccolo discovers the plot and awakens his Orange form via Shenron. Gohan unlocks Beast form to defeat the incomplete Cell Max — a monster of pure destruction.',
+        fight: 'Beast Gohan vs Cell Max — Gohan\'s eyes turn red, his hair goes white-silver. A Final Kamehameha through Cell Max\'s weak point ends the battle in a blinding explosion.',
+        transforms: ['Orange Piccolo', 'Beast Gohan', 'Cell Max', 'Gamma 1 & 2'],
+        iconic: 'Piccolo watches Gohan get beaten. His rage awakens a new potential — Orange Piccolo. Then Gohan\'s Beast form emerges: white hair, red eyes, power beyond Super Saiyan Blue.',
+        quote: '"This is my true power — Beast Gohan has arrived!" — Gohan',
+        powers: [
+            { label: 'Orange Piccolo', pct: 72 },
+            { label: 'Cell Max', pct: 85 },
+            { label: 'Beast Gohan', pct: 95 },
+            { label: 'Gamma 1 & 2', pct: 60 },
+        ]
+    },
+    daima: {
+        num: '07', color: '#FF4444', title: 'DAIMA', year: 'Age 785+',
+        villain: 'Demon Realm · Gomah',
+        summary: 'A mysterious wish on the Super Dragon Balls shrinks Goku and his allies to child size. They travel to the Demon Realm — a dark mirror of the living world — to undo the wish and uncover the conspiracy behind it.',
+        fight: 'Mini Goku vs Gomah — even at child size, Goku\'s Saiyan spirit is undiminished. New transformations and techniques emerge as Goku adapts to his smaller form.',
+        transforms: ['Mini Goku', 'Mini SSJ', 'Demon Realm Forms', 'New Transformations'],
+        iconic: 'Goku, Vegeta, and Bulma as children again — but with the wisdom and power of gods. The contrast between their small bodies and immense ki creates some of the most visually striking moments in the franchise.',
+        quote: '"Even small, the heart of a Saiyan never shrinks." — Goku',
+        powers: [
+            { label: 'Mini Goku', pct: 70 },
+            { label: 'Gomah', pct: 78 },
+            { label: 'Mini SSJ Goku', pct: 88 },
+            { label: 'Demon Realm Boss', pct: 92 },
+        ]
+    }
+};
+
+window.openSagaModal = (sagaKey) => {
+    const data = sagaData[sagaKey];
+    if (!data) return;
+
+    const modal = document.getElementById('saga-modal');
+    const panel = document.getElementById('saga-modal-panel');
+
+    // Set CSS color variable
+    panel.style.setProperty('--modal-color', data.color);
+    modal.style.setProperty('--modal-color', data.color);
+
+    // Populate
+    document.getElementById('saga-modal-num').textContent = data.num;
+    document.getElementById('saga-modal-eyebrow').textContent = `DBZ ARC · ${data.year}`;
+    document.getElementById('saga-modal-title').textContent = data.title;
+    document.getElementById('saga-modal-villain-tag').textContent = data.villain;
+    document.getElementById('saga-modal-summary').textContent = data.summary;
+    document.getElementById('saga-modal-fight').textContent = data.fight;
+    document.getElementById('saga-modal-iconic').textContent = data.iconic;
+    document.getElementById('saga-modal-quote').textContent = data.quote;
+
+    // Transforms
+    const transformsEl = document.getElementById('saga-modal-transforms');
+    transformsEl.innerHTML = data.transforms.map(t =>
+        `<span class="saga-transform-tag">${t}</span>`
+    ).join('');
+
+    // Power bars
+    const barsEl = document.getElementById('saga-power-bars');
+    barsEl.innerHTML = data.powers.map(p =>
+        `<div class="saga-power-row">
+            <div class="saga-power-label">${p.label}</div>
+            <div class="saga-power-track"><div class="saga-power-fill" data-pct="${p.pct}"></div></div>
+            <div class="saga-power-val">${p.pct}%</div>
+        </div>`
+    ).join('');
+
+    // Open modal
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    playScouter();
+
+    // Animate bars after a tick
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            barsEl.querySelectorAll('.saga-power-fill').forEach(bar => {
+                bar.style.width = bar.dataset.pct + '%';
+            });
+        });
+    });
+};
+
+window.closeSagaModal = () => {
+    document.getElementById('saga-modal').classList.remove('open');
+    document.body.style.overflow = '';
+};
+
+// Close on Escape
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeSagaModal();
+});
+
+// ═══════════════════════════════════════════════════════════
+// ⚔️ BATTLE SIMULATOR
+// ═══════════════════════════════════════════════════════════
+const fighters = [
+    { name: 'Goku (MUI)',    power: 9_800_000, quote: '"I\'ll push past every limit!"', color: '#C0C0FF' },
+    { name: 'Vegeta (UE)',   power: 9_200_000, quote: '"I am the Prince of all Saiyans!"', color: '#4488FF' },
+    { name: 'Gohan (Beast)', power: 8_900_000, quote: '"This is my true power!"', color: '#FF8800' },
+    { name: 'Jiren',         power: 9_500_000, quote: '"Power is absolute. Nothing surpasses it."', color: '#FF4444' },
+    { name: 'Frieza (Black)',power: 8_500_000, quote: '"I am the strongest in the universe!"', color: '#AA44FF' },
+    { name: 'Broly (SSJ)',   power: 9_100_000, quote: '"BRRROOOOLY!!!"', color: '#00FF88' },
+    { name: 'Beerus',        power: 9_700_000, quote: '"Hakai."', color: '#9B59B6' },
+    { name: 'Whis',          power: 9_999_999, quote: '"Oh my. How troublesome."', color: '#FFD700' },
+    { name: 'Piccolo (Orange)', power: 7_200_000, quote: '"Makankosappo!"', color: '#27AE60' },
+    { name: 'Krillin',       power: 1_000,    quote: '"SOLAR FLARE!"', color: '#FFD700' },
+    { name: 'Yamcha',        power: 177,      quote: '"Wolf Fang Fist!"', color: '#FF6600' },
+    { name: 'Nappa',         power: 4_000,    quote: '"Vegeta! How many is that?"', color: '#888888' },
+];
+
+let selectedFighter = [null, null];
+
+const buildFighterGrids = () => {
+    [1, 2].forEach(slot => {
+        const grid = document.getElementById(`fighter${slot}-grid`);
+        if (!grid) return;
+        grid.innerHTML = fighters.map((f, i) =>
+            `<button class="fighter-btn" data-slot="${slot}" data-idx="${i}" onclick="selectFighter(${slot},${i})">${f.name}</button>`
+        ).join('');
+    });
+};
+
+window.selectFighter = (slot, idx) => {
+    selectedFighter[slot - 1] = idx;
+    const f = fighters[idx];
+
+    // Update card
+    const nameEl = document.getElementById(`fighter${slot}-name`);
+    const powerEl = document.getElementById(`fighter${slot}-power`);
+    const card = document.getElementById(`fighter${slot}-card`);
+    nameEl.textContent = f.name;
+    powerEl.textContent = `PWR: ${f.power.toLocaleString()}`;
+    card.classList.add('selected');
+    card.style.borderColor = f.color;
+    card.style.boxShadow = `0 0 20px ${f.color}44`;
+
+    // Highlight active button
+    document.querySelectorAll(`.fighter-btn[data-slot="${slot}"]`).forEach(b => b.classList.remove('active'));
+    document.querySelector(`.fighter-btn[data-slot="${slot}"][data-idx="${idx}"]`).classList.add('active');
+
+    playScouter();
+};
+
+window.runBattle = () => {
+    const [i1, i2] = selectedFighter;
+    const resultEl = document.getElementById('battle-result');
+
+    if (i1 === null || i2 === null) {
+        resultEl.innerHTML = `<p style="color:#FF4444;font-family:'JetBrains Mono',monospace;font-size:0.85rem;">⚠ SELECT BOTH FIGHTERS FIRST</p>`;
+        resultEl.classList.add('visible');
+        return;
+    }
+    if (i1 === i2) {
+        resultEl.innerHTML = `<p style="color:#FF4444;font-family:'JetBrains Mono',monospace;font-size:0.85rem;">⚠ SELECT TWO DIFFERENT FIGHTERS</p>`;
+        resultEl.classList.add('visible');
+        return;
+    }
+
+    const f1 = fighters[i1], f2 = fighters[i2];
+    playKiCharge();
+
+    // Add some randomness — upsets happen
+    const roll1 = f1.power * (0.85 + Math.random() * 0.3);
+    const roll2 = f2.power * (0.85 + Math.random() * 0.3);
+    const winner = roll1 >= roll2 ? f1 : f2;
+    const loser  = winner === f1 ? f2 : f1;
+    const margin = Math.abs(roll1 - roll2);
+    const pct    = Math.round((Math.min(roll1, roll2) / Math.max(roll1, roll2)) * 100);
+
+    let verdict;
+    if (pct > 92) verdict = `An incredibly close battle — ${loser.name} pushed ${winner.name} to their absolute limit.`;
+    else if (pct > 75) verdict = `${winner.name} wins, but ${loser.name} landed some devastating blows.`;
+    else verdict = `${winner.name} dominates. ${loser.name} never stood a chance.`;
+
+    resultEl.classList.remove('visible');
+    setTimeout(() => {
+        resultEl.innerHTML = `
+            <div class="battle-winner">🏆 ${winner.name} WINS!</div>
+            <div class="battle-verdict">${verdict}</div>
+            <div class="battle-quote">${winner.quote}</div>
+        `;
+        resultEl.classList.add('visible');
+        playKiCharge();
+    }, 100);
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    buildFighterGrids();
+});
+
+// ═══════════════════════════════════════════════════════════
+// 🔥 TRANSFORMATION TREE
+// ═══════════════════════════════════════════════════════════
+const transformData = {
+    base: {
+        title: 'BASE FORM',
+        color: '#aaaaaa',
+        desc: 'Goku\'s natural state. Deceptively powerful — his base form alone surpasses most warriors in the universe. The foundation from which all transformations grow.',
+        stats: ['Power: 10,000', 'Speed: High', 'Ki Control: Perfect', 'Stamina: Unlimited']
+    },
+    ssj: {
+        title: 'SUPER SAIYAN',
+        color: '#FFD700',
+        desc: 'The legendary transformation achieved once every 1,000 years. Triggered by extreme emotional distress. Hair turns golden, eyes turn teal. Power multiplied 50x. First achieved by Goku on Namek.',
+        stats: ['Multiplier: 50x', 'Hair: Golden', 'Eyes: Teal', 'Aura: Gold/Yellow']
+    },
+    ssj2: {
+        title: 'SUPER SAIYAN 2',
+        color: '#FFE44D',
+        desc: 'The ascended form beyond Super Saiyan. Lightning crackles around the aura. First achieved by Gohan during the Cell Games. Power is 2x that of SSJ. The form that ended Cell.',
+        stats: ['Multiplier: 100x', 'Lightning: Yes', 'First: Gohan', 'Aura: Electric Gold']
+    },
+    ssj3: {
+        title: 'SUPER SAIYAN 3',
+        color: '#FFEE88',
+        desc: 'The ultimate natural Saiyan transformation. Hair grows to the waist, eyebrows disappear. Power is 4x SSJ2 but drains ki rapidly. Goku used it against Majin Buu. Gotenks achieved it in the Hyperbolic Time Chamber.',
+        stats: ['Multiplier: 400x', 'Hair: Floor-length', 'Drain: Extreme', 'Duration: Short']
+    },
+    god: {
+        title: 'SUPER SAIYAN GOD',
+        color: '#FF4466',
+        desc: 'A divine transformation achieved through a ritual of 5 righteous Saiyans. Hair turns red, body becomes leaner. Goku absorbed this power permanently after the battle with Beerus. The first God-level form.',
+        stats: ['Level: Divine', 'Hair: Red', 'Origin: Ritual', 'Ki: Godly']
+    },
+    blue: {
+        title: 'SUPER SAIYAN BLUE',
+        color: '#00AAFF',
+        desc: 'Super Saiyan God combined with Super Saiyan. Perfect ki control channels divine energy through the SSJ form. Hair turns blue, aura shines cyan. The standard form for battles against divine opponents.',
+        stats: ['Level: God+SSJ', 'Hair: Blue', 'Ki: Perfect', 'Aura: Cyan']
+    },
+    ui: {
+        title: 'ULTRA INSTINCT',
+        color: '#C0C0FF',
+        desc: 'The pinnacle of martial arts — the body moves and reacts without the mind\'s interference. Even Gods of Destruction struggle to master it. Silver hair, silver eyes. Goku\'s body becomes a perfect fighting machine that transcends thought.',
+        stats: ['Level: Beyond Gods', 'Hair: Silver', 'Eyes: Silver', 'Body: Autonomous']
+    }
+};
+
+document.querySelectorAll('.transform-node').forEach(node => {
+    node.addEventListener('click', () => {
+        const form = node.dataset.form;
+        const data = transformData[form];
+        if (!data) return;
+
+        document.querySelectorAll('.transform-node').forEach(n => n.classList.remove('active'));
+        node.classList.add('active');
+
+        const detail = document.getElementById('transform-detail');
+        detail.style.borderColor = data.color;
+        detail.innerHTML = `
+            <div class="transform-detail-title" style="color:${data.color}">${data.title}</div>
+            <p class="transform-detail-desc">${data.desc}</p>
+            <div class="transform-detail-stats">
+                ${data.stats.map(s => `<span class="transform-stat" style="border-color:${data.color}44;color:${data.color}">${s}</span>`).join('')}
+            </div>
+        `;
+        playScouter();
+    });
+});
+
+// Saga background color shift on scroll
+const sagaBgColors = {
+    saiyan:    'radial-gradient(ellipse at center, rgba(255,102,0,0.12) 0%, transparent 70%)',
+    namek:     'radial-gradient(ellipse at center, rgba(155,89,182,0.12) 0%, transparent 70%)',
+    cell:      'radial-gradient(ellipse at center, rgba(39,174,96,0.12) 0%, transparent 70%)',
+    buu:       'radial-gradient(ellipse at center, rgba(233,30,99,0.12) 0%, transparent 70%)',
+    top:       'radial-gradient(ellipse at center, rgba(0,188,212,0.12) 0%, transparent 70%)',
+    superhero: 'radial-gradient(ellipse at center, rgba(241,196,15,0.12) 0%, transparent 70%)',
+    daima:     'radial-gradient(ellipse at center, rgba(255,68,68,0.12) 0%, transparent 70%)',
+};
+
+const sagaBgOverlay = document.getElementById('saga-bg-overlay');
+if (sagaBgOverlay) {
+    const sagaCards = document.querySelectorAll('.saga-card');
+    const sagaObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const key = entry.target.dataset.saga;
+                if (sagaBgColors[key]) {
+                    sagaBgOverlay.style.background = sagaBgColors[key];
+                }
+            }
+        });
+    }, { threshold: 0.5 });
+    sagaCards.forEach(c => sagaObserver.observe(c));
+}
