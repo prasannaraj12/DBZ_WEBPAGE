@@ -234,6 +234,7 @@ h1, h2, h3, h4 {
     height: 100%;
     z-index: 1;
     pointer-events: none;
+    will-change: transform;
 }
 
 /* Scanline overlay for anime feel */
@@ -527,8 +528,8 @@ h1, h2, h3, h4 {
 /* Scouter aesthetic modifications */
 .glass-card {
     background: var(--glass-bg);
-    backdrop-filter: blur(30px);
-    -webkit-backdrop-filter: blur(30px);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     border: 1px solid var(--glass-border);
     padding: 3rem;
     border-radius: 0px; /* Sharp official DB style instead of 20px */

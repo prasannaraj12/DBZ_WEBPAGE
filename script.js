@@ -130,7 +130,7 @@ const initAnimations = () => {
 
     // Generate Super Saiyan Sparks dynamically
     const sparksContainer = document.getElementById('sparks-container');
-    const MAX_SPARKS = 30;
+    const MAX_SPARKS = 15;  // reduced from 30
 
     for (let i = 0; i < MAX_SPARKS; i++) {
         let spark = document.createElement('div');
@@ -202,42 +202,60 @@ const renderCharacters = (filter = 'all') => {
 
 const loadCharacters = async () => {
     const wrapper = document.getElementById('dynamic-characters');
+
+    // Use sessionStorage cache to avoid re-fetching on every page visit
+    const CACHE_KEY = 'dbz_characters_v1';
+    const cached = sessionStorage.getItem(CACHE_KEY);
+    if (cached) {
+        allCharacters = JSON.parse(cached);
+        renderCharacters('all');
+        attachCardInteractions(wrapper);
+        setTimeout(initAnimations, 200);
+        return;
+    }
+
     try {
-        // Fetch all pages (API has 58 characters across 4 pages)
-        const page1 = await fetch('https://dragonball-api.com/api/characters?limit=20&page=1').then(r => r.json());
-        const page2 = await fetch('https://dragonball-api.com/api/characters?limit=20&page=2').then(r => r.json());
-        const page3 = await fetch('https://dragonball-api.com/api/characters?limit=20&page=3').then(r => r.json());
+        // Fetch all pages in parallel instead of sequentially
+        const [page1, page2, page3] = await Promise.all([
+            fetch('https://dragonball-api.com/api/characters?limit=20&page=1').then(r => r.json()),
+            fetch('https://dragonball-api.com/api/characters?limit=20&page=2').then(r => r.json()),
+            fetch('https://dragonball-api.com/api/characters?limit=20&page=3').then(r => r.json()),
+        ]);
 
         allCharacters = [...page1.items, ...page2.items, ...page3.items];
+        sessionStorage.setItem(CACHE_KEY, JSON.stringify(allCharacters));
         renderCharacters('all');
-
-        // Drag-to-scroll
-        let isDown = false, startX, scrollLeft;
-        wrapper.addEventListener('mousedown', (e) => { isDown = true; startX = e.pageX - wrapper.offsetLeft; scrollLeft = wrapper.scrollLeft; });
-        wrapper.addEventListener('mouseleave', () => isDown = false);
-        wrapper.addEventListener('mouseup', () => isDown = false);
-        wrapper.addEventListener('mousemove', (e) => {
-            if (!isDown) return;
-            e.preventDefault();
-            const x = e.pageX - wrapper.offsetLeft;
-            wrapper.scrollLeft = scrollLeft - (x - startX);
-        });
-
-        // Category filter chip buttons
-        document.querySelectorAll('.char-chip').forEach(chip => {
-            chip.addEventListener('click', () => {
-                document.querySelectorAll('.char-chip').forEach(c => c.classList.remove('active'));
-                chip.classList.add('active');
-                renderCharacters(chip.dataset.filter);
-            });
-        });
-
+        attachCardInteractions(wrapper);
         setTimeout(initAnimations, 200);
     } catch (e) {
         console.error('Failed to load characters:', e);
         if (wrapper) wrapper.innerHTML = `<p style="color:red; min-width:300px;">Failed to load characters. Check connection.</p>`;
         setTimeout(initAnimations, 100);
     }
+};
+
+const attachCardInteractions = (wrapper) => {
+    if (!wrapper) return;
+    // Drag-to-scroll
+    let isDown = false, startX, scrollLeft;
+    wrapper.addEventListener('mousedown', (e) => { isDown = true; startX = e.pageX - wrapper.offsetLeft; scrollLeft = wrapper.scrollLeft; });
+    wrapper.addEventListener('mouseleave', () => isDown = false);
+    wrapper.addEventListener('mouseup', () => isDown = false);
+    wrapper.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - wrapper.offsetLeft;
+        wrapper.scrollLeft = scrollLeft - (x - startX);
+    });
+
+    // Category filter chip buttons
+    document.querySelectorAll('.char-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            document.querySelectorAll('.char-chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            renderCharacters(chip.dataset.filter);
+        });
+    });
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -249,10 +267,8 @@ document.addEventListener("DOMContentLoaded", () => {
 window.addEventListener('load', () => {
     const loader = document.getElementById('loader');
     if (loader) {
-        setTimeout(() => {
-            loader.style.opacity = '0';
-            setTimeout(() => { loader.style.display = 'none'; }, 500);
-        }, 1200);
+        loader.style.opacity = '0';
+        setTimeout(() => { loader.style.display = 'none'; }, 400);
     }
 });
 
@@ -602,7 +618,7 @@ const initHero = () => {
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // LAYER 0 — COSMIC BACKGROUND + NEBULA
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    const STAR_COUNT = 300;
+    const STAR_COUNT = 150;  // reduced from 300
     const stars = Array.from({ length: STAR_COUNT }, () => ({
         x: Math.random(), y: Math.random(),
         r: Math.random() * 1.6 + 0.2,
@@ -650,7 +666,7 @@ const initHero = () => {
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // LAYER 1 — GOD RAYS (volumetric crepuscular light)
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    const RAY_COUNT = 24;
+    const RAY_COUNT = 14;  // reduced from 24
     const rays = Array.from({ length: RAY_COUNT }, (_, i) => ({
         angle:  (i / RAY_COUNT) * Math.PI * 2,
         width:  Math.random() * 0.04 + 0.008, // angular width
@@ -702,7 +718,7 @@ const initHero = () => {
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // Each tongue is a quadratic bézier curve from base → tip,
     // with control point displaced by layered sine noise.
-    const TONGUE_COUNT = 40;
+    const TONGUE_COUNT = 22;  // reduced from 40
     const tongues = Array.from({ length: TONGUE_COUNT }, (_, i) => ({
         id:     i,
         xBase:  (Math.random() - 0.5) * 320, // offset from center-bottom
@@ -871,7 +887,7 @@ const initHero = () => {
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // LAYER 5 — KI ENERGY STREAMS (spiral inward)
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    const KI_COUNT = 140;
+    const KI_COUNT = 70;  // reduced from 140
     const kiParticles = [];
 
     const spawnKi = () => {
@@ -1083,7 +1099,7 @@ const initHero = () => {
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // LAYER 8 — FLOATING EMBERS
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    const EMBER_COUNT = 80;
+    const EMBER_COUNT = 40;  // reduced from 80
     const embers = Array.from({ length: EMBER_COUNT }, () => {
         const xFrac = Math.random();
         return {
@@ -1114,22 +1130,32 @@ const initHero = () => {
     };
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    // MAIN RENDER LOOP
+    // MAIN RENDER LOOP — pauses when hero is off-screen
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    const render = () => {
+    let heroVisible = true;
+    let rafId = null;
+
+    const observer = new IntersectionObserver(
+        ([entry]) => { heroVisible = entry.isIntersecting; if (heroVisible && !rafId) loop(); },
+        { threshold: 0.01 }
+    );
+    observer.observe(hero);
+
+    const loop = () => {
+        if (!heroVisible) { rafId = null; return; }
         t += 0.016;
-        drawBackground();    // 0 — deep space + stars
-        drawGodRays();       // 1 — volumetric light beams
-        drawFire();          // 2 — real bezier fire tongues
-        drawGroundPool();    // 3 — heat crater on ground
-        drawShockwaves();    // 4 — expanding rings
-        drawKiStreams();     // 5 — spiraling ki energy
-        drawEmbers();        // 6 — floating embers
-        drawCoreOrb();       // 7 — power sphere + orbitals
-        drawArcs();          // 8 — fractal lightning
-        requestAnimationFrame(render);
+        drawBackground();
+        drawGodRays();
+        drawFire();
+        drawGroundPool();
+        drawShockwaves();
+        drawKiStreams();
+        drawEmbers();
+        drawCoreOrb();
+        drawArcs();
+        rafId = requestAnimationFrame(loop);
     };
-    render();
+    loop();
 
     // Mouse parallax tilt on hero-content
     const tiltEl = document.getElementById('hero-tilt');
