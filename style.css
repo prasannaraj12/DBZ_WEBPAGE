@@ -934,6 +934,63 @@ h1, h2, h3, h4 {
     transition: opacity 0.5s ease-out;
 }
 
+.loader-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.2rem;
+}
+
+.loader-jp {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0;
+}
+
+.loader-jp-char {
+    font-family: 'Montserrat', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+    font-size: clamp(2.2rem, 6vw, 4.5rem);
+    font-weight: 900;
+    color: transparent;
+    -webkit-text-stroke: 2px var(--primary-gold);
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(-20px);
+    animation: loader-char-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: calc(0.07s * var(--i));
+    text-shadow: 0 0 30px rgba(255, 210, 0, 0.5);
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+}
+
+.loader-jp-space {
+    width: 0.35em;
+    -webkit-text-stroke: 0;
+}
+
+@keyframes loader-char-in {
+    0%   { opacity: 0; transform: translateY(-24px) scale(0.7); filter: blur(6px); }
+    65%  { opacity: 1; transform: translateY(4px) scale(1.05); filter: blur(0); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.loader-jp-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(0.6rem, 1.5vw, 0.85rem);
+    letter-spacing: 3px;
+    color: rgba(255, 210, 0, 0.45);
+    text-align: center;
+    opacity: 0;
+    animation: loader-sub-in 0.8s ease forwards;
+    animation-delay: calc(0.07s * 20 + 0.3s);
+}
+
+@keyframes loader-sub-in {
+    from { opacity: 0; letter-spacing: 8px; }
+    to   { opacity: 1; letter-spacing: 3px; }
+}
+
 .dragon-ball-spinner {
     width: 60px;
     height: 60px;
