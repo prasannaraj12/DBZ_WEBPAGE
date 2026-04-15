@@ -24,12 +24,22 @@
         </div>
     </div>
 
-    <!-- Shenron Overlay (hidden until all 7 balls collected) -->
     <!-- Cinematic Shenron Summon Overlay -->
     <div id="shenron-overlay" class="shenron-overlay">
 
-        <!-- Step 1: Dark sky bg -->
+        <!-- Step 1: Dark sky bg with Namek atmosphere -->
         <div class="shenron-sky"></div>
+
+        <!-- Namek mountains silhouette -->
+        <div class="shenron-mountains"></div>
+
+        <!-- Floating dragon balls in bg -->
+        <div class="shenron-bg-balls">
+            <div class="bg-ball bb1">★</div>
+            <div class="bg-ball bb2">★★</div>
+            <div class="bg-ball bb3">★★★</div>
+            <div class="bg-ball bb4">★★★★</div>
+        </div>
 
         <!-- Step 2: Lightning canvas -->
         <canvas id="lightning-canvas" class="lightning-canvas"></canvas>
@@ -39,10 +49,22 @@
         <div class="shenron-fog fog-2"></div>
         <div class="shenron-fog fog-3"></div>
 
-        <!-- Step 3: Shenron SVG Dragon -->
+        <!-- Green aura waves -->
+        <div class="shenron-aura-wave wave-1"></div>
+        <div class="shenron-aura-wave wave-2"></div>
+        <div class="shenron-aura-wave wave-3"></div>
+
+        <!-- Step 3: Shenron -->
         <div class="shenron-body-wrap" id="shenron-body">
             <div class="shenron-glow-ring"></div>
-            <img src="assets/shenron.png" alt="Shenron the Eternal Dragon" class="shenron-img">
+            <div class="shenron-smoke smoke-l"></div>
+            <div class="shenron-smoke smoke-r"></div>
+            <!-- Red eye glows -->
+            <div class="shenron-eyes">
+                <div class="shenron-eye eye-l"></div>
+                <div class="shenron-eye eye-r"></div>
+            </div>
+            <img src="assets/shenron.png" alt="Shenron the Eternal Dragon" class="shenron-img" id="shenron-img">
         </div>
 
         <!-- Step 4: Wish content -->
@@ -50,18 +72,46 @@
             <h2 class="shenron-title">SHENRON HAS BEEN SUMMONED!</h2>
             <p class="shenron-sub">Speak your wish... the Eternal Dragon is listening.</p>
 
+            <!-- Wish category quick-picks -->
+            <div class="wish-categories" id="wish-categories">
+                <button class="wish-cat-btn" data-wish="Grant me unlimited power beyond all gods">POWER</button>
+                <button class="wish-cat-btn" data-wish="I want infinite wealth and riches">WEALTH</button>
+                <button class="wish-cat-btn" data-wish="Make someone fall in love with me">LOVE</button>
+                <button class="wish-cat-btn" data-wish="Save the Earth from all evil">SAVE EARTH</button>
+                <button class="wish-cat-btn" data-wish="Grant me infinite wisdom and knowledge">WISDOM</button>
+                <button class="wish-cat-btn" data-wish="Transform me into a Super Saiyan warrior">BECOME SAIYAN</button>
+            </div>
+
             <!-- Wish input -->
             <div class="wish-input-wrap">
-                <input type="text" id="wish-input" class="wish-input" placeholder="Type your wish..." maxlength="60">
+                <div class="wish-input-container">
+                    <span class="wish-input-icon">🐉</span>
+                    <input type="text" id="wish-input" class="wish-input" placeholder="I want unlimited power..." maxlength="60">
+                    <div class="wish-energy-bar"><div class="wish-energy-fill" id="wish-energy-fill"></div></div>
+                </div>
                 <button class="wish-grant-btn" id="wish-grant-btn">GRANT WISH</button>
             </div>
+
+            <!-- Spark canvas for typing effect -->
+            <canvas id="wish-sparks-canvas" class="wish-sparks-canvas"></canvas>
 
             <!-- Shenron response -->
             <div class="shenron-response" id="shenron-response"></div>
 
+            <!-- Granted wish display -->
             <div class="wish-box" id="wish-box"></div>
+
             <button class="wish-close-btn" id="wish-close">✕ Dismiss</button>
         </div>
+
+        <!-- Grant wish cinematic overlay — covers full screen -->
+        <div class="wish-granted-overlay" id="wish-granted-overlay">
+            <div class="wish-granted-text" id="wish-granted-text">YOUR WISH HAS BEEN GRANTED</div>
+            <div class="wish-granted-sub" id="wish-granted-sub"></div>
+        </div>
+
+        <!-- Dragon balls scatter animation -->
+        <div class="db-scatter-container" id="db-scatter-container"></div>
     </div>
 
     <!-- ═══ SAGA MODAL ═══ -->
@@ -211,41 +261,82 @@
 
         <!-- ═══ LORE / DRAGON RADAR ═══ -->
         <section id="lore" class="lore-section parallax-section">
+            <div class="lore-bg-overlay"></div>
             <div class="container content-grid">
                 <div class="image-block" data-speed="0.4">
-                    <div class="dragon-radar">
-                        <div class="radar-glass">
-                            <div class="radar-scanner"></div>
-                            <div class="radar-grid"></div>
-                            <div class="dragon-blip" style="top:30%;left:40%;"></div>
-                            <div class="dragon-blip" style="top:60%;left:70%;"></div>
-                            <div class="dragon-blip" style="top:20%;left:80%;"></div>
+                    <div class="dragon-radar-wrapper">
+                        <div class="dragon-radar">
+                            <div class="radar-glass">
+                                <canvas id="radar-canvas" class="radar-canvas"></canvas>
+                                <div class="radar-grid"></div>
+                                <div id="radar-blips">
+                                    <!-- Blips will be injected by JS -->
+                                </div>
+                            </div>
+                            <div class="radar-button"></div>
+                            <div class="radar-status" id="radar-status">Scanning for signals...</div>
                         </div>
-                        <div class="radar-button"></div>
                     </div>
                 </div>
                 <div class="text-block" data-speed="1.8">
-                    <h2>THE MYSTIC <span class="text-yellow">DRAGON BALLS</span></h2>
-                    <p>Scattered across the cosmos, these amber spheres await those brave enough to seek them. Gather all seven and summon the Eternal Dragon.</p>
+                    <div class="heading-reveal">
+                        <h2 class="cinematic-title">
+                            <span class="title-top">THE MYSTIC</span>
+                            <span class="title-main text-yellow">DRAGON <span class="text-glow-orange">BALLS</span></span>
+                        </h2>
+                    </div>
+                    <p class="lore-description">Scattered across the cosmos, these amber spheres await those brave enough to seek them. Gather all seven and summon the Eternal Dragon.</p>
+                    
+                    <div class="collection-progress-wrap">
+                        <div class="progress-label">BALLS COLLECTED: <span id="radar-count">0</span>/7</div>
+                        <div class="collection-bar">
+                            <div class="collection-slot" data-slot="1"></div>
+                            <div class="collection-slot" data-slot="2"></div>
+                            <div class="collection-slot" data-slot="3"></div>
+                            <div class="collection-slot" data-slot="4"></div>
+                            <div class="collection-slot" data-slot="5"></div>
+                            <div class="collection-slot" data-slot="6"></div>
+                            <div class="collection-slot" data-slot="7"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- ═══ 🐉 DRAGON BALL COLLECTION ═══ -->
-        <section id="dragonballs" class="parallax-section dragonball-section">
-            <div class="container relative-z" style="text-align:center;">
-                <h2 class="section-title">COLLECT THE <span style="color:var(--primary-gold);-webkit-text-stroke:0px;transform:none;">DRAGON BALLS</span></h2>
-                <p class="db-instruction">Click all 7 Dragon Balls to summon Shenron and receive a wish!</p>
-                <div class="dragonballs-grid" id="dragonballs-grid">
-                    <div class="db-ball" data-ball="1" onclick="collectBall(this)"><div class="db-inner"><span class="db-stars">★</span></div></div>
-                    <div class="db-ball" data-ball="2" onclick="collectBall(this)"><div class="db-inner"><span class="db-stars">★★</span></div></div>
-                    <div class="db-ball" data-ball="3" onclick="collectBall(this)"><div class="db-inner"><span class="db-stars">★★★</span></div></div>
-                    <div class="db-ball" data-ball="4" onclick="collectBall(this)"><div class="db-inner"><span class="db-stars">★★★★</span></div></div>
-                    <div class="db-ball" data-ball="5" onclick="collectBall(this)"><div class="db-inner"><span class="db-stars">★★★★★</span></div></div>
-                    <div class="db-ball" data-ball="6" onclick="collectBall(this)"><div class="db-inner"><span class="db-stars">★★★★★★</span></div></div>
-                    <div class="db-ball" data-ball="7" onclick="collectBall(this)"><div class="db-inner"><span class="db-stars">★★★★★★★</span></div></div>
+        <!-- ═══ 🚀 THE DRAGON BALL LORE ═══ -->
+        <section id="dragonballs" class="parallax-section lore-cards-section">
+            <div class="container relative-z">
+                <h2 class="section-title">DRAGON BALL <span class="text-glow-orange">ARCHIVES</span></h2>
+                <div class="lore-cards-grid">
+                    <div class="lore-card">
+                        <div class="card-glow" style="--color: #ff9800;"></div>
+                        <div class="lore-card-inner">
+                            <h3>SHENRON</h3>
+                            <p>The Eternal Dragon summoned from the Earth's Dragon Balls. He can grant any wish within the power of his creator, Kami.</p>
+                        </div>
+                    </div>
+                    <div class="lore-card">
+                        <div class="card-glow" style="--color: #4caf50;"></div>
+                        <div class="lore-card-inner">
+                            <h3>NAMEKIAN BALLS</h3>
+                            <p>Created by Guru, these balls are much larger and summon Porunga. They can grant three wishes and bring back multiple people.</p>
+                        </div>
+                    </div>
+                    <div class="lore-card">
+                        <div class="card-glow" style="--color: #f44336;"></div>
+                        <div class="lore-card-inner">
+                            <h3>BLACK STAR</h3>
+                            <p>Mysterious balls that scatter across the entire galaxy. If not returned to Earth within a year, the planet will explode.</p>
+                        </div>
+                    </div>
+                    <div class="lore-card">
+                        <div class="card-glow" style="--color: #00bcd4;"></div>
+                        <div class="lore-card-inner">
+                            <h3>SUPER DRAGON BALLS</h3>
+                            <p>Planet-sized "Wish Orbs" scattered across Universes 6 and 7. They summon Super Shenron, who can grant any wish without limits.</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="db-counter"><span id="db-count">0</span> / 7 Dragon Balls Collected</div>
             </div>
         </section>
 

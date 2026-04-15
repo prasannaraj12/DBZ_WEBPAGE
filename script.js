@@ -119,12 +119,48 @@ const initAnimations = () => {
         scale: 0.5,
         opacity: 0,
         rotation: -45,
-        duration: 1.5,
+        duration: 2,
         ease: "elastic.out(1, 0.5)",
         scrollTrigger: {
-            trigger: ".lore-section",
+            trigger: "#lore",
             start: "top 70%",
             toggleActions: "play none none reverse"
+        }
+    });
+
+    // 8. Cinematic Title Entry (Part of Hero Upgrade Request)
+    gsap.from(".title-top", {
+        x: -50,
+        opacity: 0,
+        duration: 1,
+        ease: "power3.out",
+        scrollTrigger: {
+            trigger: ".cinematic-title",
+            start: "top 80%"
+        }
+    });
+
+    gsap.from(".title-main", {
+        y: 50,
+        opacity: 0,
+        duration: 1.2,
+        delay: 0.3,
+        ease: "power4.out",
+        scrollTrigger: {
+            trigger: ".cinematic-title",
+            start: "top 80%"
+        }
+    });
+
+    gsap.from(".collection-slot", {
+        scale: 0,
+        opacity: 0,
+        stagger: 0.1,
+        duration: 0.8,
+        ease: "back.out(2)",
+        scrollTrigger: {
+            trigger: ".collection-bar",
+            start: "top 90%"
         }
     });
 
@@ -226,7 +262,10 @@ const loadCharacters = async () => {
         sessionStorage.setItem(CACHE_KEY, JSON.stringify(allCharacters));
         renderCharacters('all');
         attachCardInteractions(wrapper);
-        setTimeout(initAnimations, 200);
+        setTimeout(() => {
+            initAnimations();
+            ScrollTrigger.refresh();
+        }, 200);
     } catch (e) {
         console.error('Failed to load characters:', e);
         if (wrapper) wrapper.innerHTML = `<p style="color:red; min-width:300px;">Failed to load characters. Check connection.</p>`;
@@ -261,6 +300,7 @@ const attachCardInteractions = (wrapper) => {
 document.addEventListener("DOMContentLoaded", () => {
     loadCharacters();
     initHero();
+    initRadar();
 
     // Mark each jp-char as landed after its drop-in animation ends
     document.querySelectorAll('.jp-char').forEach(el => {
@@ -337,20 +377,224 @@ document.querySelectorAll('.nav-links a, .char-chip, .scanner-btn').forEach(el =
 });
 
 // ---------------------------------------
-// ?? DRAGON BALL COLLECTION
+// ---------------------------------------
+// 🛰️ LIVE DRAGON RADAR SYSTEM
 // ---------------------------------------
 let collectedBalls = 0;
+let radarBalls = [];
 
-window.collectBall = (el) => {
-    if (el.classList.contains('collected')) return;
-    el.classList.add('collected');
+// Sonar sound synthesis
+const playRadarPing = () => {
+    try {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.1, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+        osc.start(); osc.stop(ctx.currentTime + 0.1);
+    } catch(e) {}
+};
+
+const playFoundSound = () => {
+    try {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.setValueAtTime(440, ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(880, ctx.currentTime + 0.1);
+        osc.frequency.linearRampToValueAtTime(1320, ctx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+        osc.start(); osc.stop(ctx.currentTime + 0.3);
+    } catch(e) {}
+};
+
+const initRadar = () => {
+    const blipsContainer = document.getElementById('radar-blips');
+    if (!blipsContainer) return;
+
+    // Place blips well inside the radar — spread across 25–75% of radius
+    radarBalls = Array.from({ length: 7 }, (_, i) => {
+        const angle = (i / 7) * Math.PI * 2 + (Math.random() - 0.5) * 0.6;
+        const distPct = 22 + Math.random() * 48; // 22–70% from center
+
+        const x = 50 + Math.cos(angle) * distPct;
+        const y = 50 + Math.sin(angle) * distPct;
+
+        const blip = document.createElement('div');
+        blip.className = 'dragon-blip';
+        blip.style.left = `${x}%`;
+        blip.style.top  = `${y}%`;
+
+        let stars = '';
+        for (let s = 0; s <= i; s++) stars += '★';
+        blip.innerHTML = `<span style="font-size:${i < 3 ? 8 : 6}px;line-height:1;">${stars}</span>`;
+
+        blip.style.animation = `blip-float ${3 + Math.random() * 2}s ease-in-out infinite`;
+        blip.style.animationDelay = `${Math.random() * 2}s`;
+
+        const angleDeg = (angle * 180 / Math.PI + 360) % 360;
+        blip.dataset.index = i;
+        blip.dataset.angle = angleDeg;
+        blip.dataset.dist  = Math.round(distPct * 5);
+
+        blip.onclick = (e) => {
+            e.stopPropagation();
+            collectRadarBall(i, blip);
+        };
+
+        blipsContainer.appendChild(blip);
+        return {
+            element: blip,
+            angle: angleDeg,
+            distPct,
+            stars: i + 1,
+            collected: false,
+            detected: false
+        };
+    });
+
+    animateRadar();
+};
+
+const animateRadar = () => {
+    const canvas = document.getElementById('radar-canvas');
+    if (!canvas) return;
+
+    // Wait one frame so CSS has laid out the element
+    requestAnimationFrame(() => {
+        const size = canvas.offsetWidth;
+        canvas.width  = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        const cx = size / 2;
+        const cy = size / 2;
+        const R  = size / 2;
+
+        let sweepAngle = -Math.PI / 2; // start pointing up
+        const SWEEP_SPEED = (2 * Math.PI) / (4 * 60); // 4s per rotation at 60fps
+
+        const drawFrame = () => {
+            ctx.clearRect(0, 0, size, size);
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(cx, cy, R, 0, Math.PI * 2);
+            ctx.clip();
+
+            // Concentric range rings
+            ctx.lineWidth = 1;
+            [0.25, 0.5, 0.75, 1.0].forEach(frac => {
+                ctx.beginPath();
+                ctx.arc(cx, cy, R * frac, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(57,255,20,${frac === 1.0 ? 0.15 : 0.2})`;
+                ctx.stroke();
+            });
+
+            // Sweep trail — filled sector fading behind the line
+            const trailLen = Math.PI * 0.5; // ~90 degrees
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, R, sweepAngle - trailLen, sweepAngle, false);
+            ctx.closePath();
+            // Use a radial gradient so it fades from center outward AND angularly
+            const trailGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
+            trailGrad.addColorStop(0,   'rgba(57,255,20,0.0)');
+            trailGrad.addColorStop(0.3, 'rgba(57,255,20,0.08)');
+            trailGrad.addColorStop(1,   'rgba(57,255,20,0.18)');
+            ctx.fillStyle = trailGrad;
+            ctx.globalAlpha = 0.85;
+            ctx.fill();
+            ctx.globalAlpha = 1;
+            ctx.restore();
+
+            // Sweep line
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + Math.cos(sweepAngle) * R, cy + Math.sin(sweepAngle) * R);
+            ctx.strokeStyle = 'rgba(57,255,20,1)';
+            ctx.lineWidth = 2;
+            ctx.shadowColor = '#39ff14';
+            ctx.shadowBlur = 8;
+            ctx.stroke();
+            ctx.restore();
+
+            // Center dot
+            ctx.beginPath();
+            ctx.arc(cx, cy, 3.5, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(57,255,20,1)';
+            ctx.fill();
+
+            ctx.restore(); // end clip
+
+            // Advance
+            sweepAngle += SWEEP_SPEED;
+            if (sweepAngle > Math.PI * 2 - Math.PI / 2) sweepAngle -= Math.PI * 2;
+
+            // Detection check
+            const sweepDeg = (sweepAngle * 180 / Math.PI + 360) % 360;
+            radarBalls.forEach(ball => {
+                if (ball.collected) return;
+                const diff = Math.abs(sweepDeg - ball.angle);
+                const wrapDiff = 360 - diff;
+                if ((diff < 8 || wrapDiff < 8) && !ball.detected) {
+                    ball.detected = true;
+                    ball.element.classList.add('detected');
+                    document.getElementById('radar-status').innerText =
+                        `SIGNAL DETECTED: DB-${ball.stars} (${ball.element.dataset.dist}km)`;
+                    playRadarPing();
+                    setTimeout(() => {
+                        ball.element.classList.remove('detected');
+                        ball.detected = false;
+                    }, 1000);
+                }
+            });
+
+            requestAnimationFrame(drawFrame);
+        };
+
+        requestAnimationFrame(drawFrame);
+    });
+};
+
+
+const collectRadarBall = (index, el) => {
+    if (radarBalls[index].collected) return;
+    
+    radarBalls[index].collected = true;
+    el.style.animation = 'none'; // stop float animation
+    el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+    el.style.transform = 'translate(-50%, -50%) scale(2.5)';
+    el.style.opacity = '0';
+    el.style.pointerEvents = 'none';
+
     collectedBalls++;
-    document.getElementById('db-count').textContent = collectedBalls;
+    document.getElementById('radar-count').textContent = collectedBalls;
+    
+    const slot = document.querySelector(`.collection-slot[data-slot="${collectedBalls}"]`);
+    if (slot) slot.classList.add('filled');
+
+    playFoundSound();
     playKiCharge();
+
     if (collectedBalls === 7) {
-        setTimeout(() => summonShenron(), 800);
+        document.getElementById('radar-status').innerText = "ALL BALLS COLLECTED! SUMMONING...";
+        setTimeout(() => summonShenron(), 1500);
+    } else {
+        document.getElementById('radar-status').innerText = `REMAINING: ${7 - collectedBalls} SIGNALS...`;
     }
 };
+
+
+
 
 // ---------------------------------------
 // 🐉 CINEMATIC SHENRON SUMMON
@@ -437,25 +681,32 @@ const playShenronRise = () => {
     } catch(e) {}
 };
 
-// Wish response map
+// Wish response map — expanded with more variety
 const wishResponses = [
-    { keywords: ['ultra instinct', 'ui', 'migatte'],   response: '"YOUR WISH IS GRANTED. ULTRA INSTINCT AWAKENS."' },
-    { keywords: ['immortal', 'immortality', 'eternal'], response: '"IMMORTALITY... A DANGEROUS WISH. GRANTED."' },
-    { keywords: ['saiyan', 'super saiyan', 'ssj'],      response: '"THE POWER OF A SUPER SAIYAN FLOWS THROUGH YOU."' },
-    { keywords: ['strong', 'power', 'strength'],        response: '"YOUR POWER LEVEL IS NOW... OVER 9,000."' },
-    { keywords: ['wish', 'anything', 'everything'],     response: '"SUCH AMBITION. YOUR WISH SHALL BE GRANTED."' },
-    { keywords: ['goku', 'vegeta', 'gohan', 'piccolo'], response: '"THE LEGENDARY WARRIOR ANSWERS YOUR CALL."' },
-    { keywords: ['dragon ball', 'dragonball'],          response: '"THE DRAGON BALLS RESPOND TO YOUR DESIRE."' },
-    { keywords: ['money', 'rich', 'wealth'],            response: '"...SHENRON DOES NOT DEAL IN EARTHLY COIN."' },
-    { keywords: ['love', 'heart'],                      response: '"EVEN I CANNOT FORCE THE HEART OF ANOTHER."' },
+    { keywords: ['ultra instinct', 'ui', 'migatte'],    response: '"YOUR WISH IS GRANTED. ULTRA INSTINCT AWAKENS WITHIN YOU."',       type: 'epic' },
+    { keywords: ['immortal', 'immortality', 'eternal'], response: '"IMMORTALITY... A DANGEROUS WISH. SO BE IT. GRANTED."',             type: 'dark' },
+    { keywords: ['saiyan', 'super saiyan', 'ssj'],      response: '"THE POWER OF A SUPER SAIYAN NOW FLOWS THROUGH YOUR VEINS."',       type: 'epic' },
+    { keywords: ['strong', 'power', 'strength', 'unlimited power', 'beyond all gods'], response: '"YOUR POWER LEVEL IS NOW... OVER 9,000,000."', type: 'epic' },
+    { keywords: ['wish', 'anything', 'everything'],     response: '"SUCH AMBITION. YOUR WISH SHALL BE GRANTED."',                     type: 'neutral' },
+    { keywords: ['goku', 'vegeta', 'gohan', 'piccolo'], response: '"THE LEGENDARY WARRIOR ANSWERS YOUR CALL."',                       type: 'epic' },
+    { keywords: ['dragon ball', 'dragonball'],          response: '"THE DRAGON BALLS RESPOND TO YOUR DESIRE."',                       type: 'neutral' },
+    { keywords: ['money', 'rich', 'wealth', 'riches'],  response: '"...SHENRON DOES NOT DEAL IN EARTHLY COIN. SEEK POWER INSTEAD."', type: 'reject' },
+    { keywords: ['love', 'heart', 'fall in love'],      response: '"EVEN I CANNOT FORCE THE HEART OF ANOTHER. THIS WISH IS BEYOND ME."', type: 'reject' },
+    { keywords: ['save', 'earth', 'protect', 'evil'],   response: '"YOUR NOBLE HEART IS WORTHY. THE EARTH SHALL BE PROTECTED."',     type: 'epic' },
+    { keywords: ['wisdom', 'knowledge', 'smart'],       response: '"WISDOM GRANTED. USE IT AS WISELY AS MASTER ROSHI... HOPEFULLY."', type: 'funny' },
+    { keywords: ['confidence', 'brave', 'courage'],     response: '"YOUR SPIRIT SHALL RIVAL THE PRIDE OF VEGETA HIMSELF."',          type: 'epic' },
+    { keywords: ['super shenron', 'planet', 'universe'],'response': '"THAT WISH EXCEEDS MY POWER. SEEK THE SUPER DRAGON BALLS."',    type: 'reject' },
+    { keywords: ['revive', 'bring back', 'resurrect'],  response: '"THE DEAD SHALL WALK AGAIN. YOUR WISH IS GRANTED."',              type: 'epic' },
+    { keywords: ['yamcha'],                             response: '"...EVEN I CANNOT MAKE YAMCHA RELEVANT. SOME THINGS ARE IMPOSSIBLE."', type: 'funny' },
+    { keywords: ['krillin'],                            response: '"KRILLIN\'S POWER LEVEL HAS BEEN RAISED TO... 1,001. YOU\'RE WELCOME."', type: 'funny' },
 ];
 
 const getShenronResponse = (wish) => {
     const lower = wish.toLowerCase();
     for (const entry of wishResponses) {
-        if (entry.keywords.some(k => lower.includes(k))) return entry.response;
+        if (entry.keywords.some(k => lower.includes(k))) return entry;
     }
-    return '"SO BE IT. YOUR WISH... IS GRANTED."';
+    return { response: '"SO BE IT. YOUR WISH... IS GRANTED."', type: 'neutral' };
 };
 
 const summonShenron = () => {
@@ -465,6 +716,9 @@ const summonShenron = () => {
     const wishBox = document.getElementById('wish-box');
     const responseEl = document.getElementById('shenron-response');
     const wishInput = document.getElementById('wish-input');
+    const grantedOverlay = document.getElementById('wish-granted-overlay');
+    const grantedText = document.getElementById('wish-granted-text');
+    const grantedSub = document.getElementById('wish-granted-sub');
 
     // Reset state
     overlay.classList.add('active');
@@ -474,6 +728,8 @@ const summonShenron = () => {
     wishBox.textContent = '';
     if (responseEl) responseEl.textContent = '';
     if (wishInput) wishInput.value = '';
+    if (grantedOverlay) grantedOverlay.classList.remove('active');
+    document.getElementById('wish-energy-fill').style.width = '0%';
 
     // Step 1: sky darkens (instant via CSS)
     // Step 2: lightning phase
@@ -497,38 +753,265 @@ const summonShenron = () => {
             // Step 4: wish content appears
             setTimeout(() => {
                 content.classList.add('visible');
+                initWishSparks();
             }, 900);
         }
     }, 220);
+
+    // Category quick-pick buttons
+    document.querySelectorAll('.wish-cat-btn').forEach(btn => {
+        btn.onclick = () => {
+            if (wishInput) {
+                wishInput.value = btn.dataset.wish;
+                wishInput.dispatchEvent(new Event('input'));
+                wishInput.focus();
+                playScouter();
+            }
+        };
+    });
+
+    // Wish input energy bar + spark typing
+    if (wishInput) {
+        wishInput.addEventListener('input', () => {
+            const pct = Math.min(100, (wishInput.value.length / 60) * 100);
+            document.getElementById('wish-energy-fill').style.width = pct + '%';
+            spawnWishSparks(wishInput);
+            playScouter();
+        });
+    }
 
     // Wish grant button
     const grantBtn = document.getElementById('wish-grant-btn');
     if (grantBtn) {
         grantBtn.onclick = () => {
             const wish = wishInput ? wishInput.value.trim() : '';
-            if (!wish) return;
-            playKiCharge();
-            const resp = getShenronResponse(wish);
-            if (responseEl) {
-                responseEl.textContent = resp;
-                responseEl.style.opacity = '0';
-                setTimeout(() => { responseEl.style.opacity = '1'; }, 50);
+            if (!wish) {
+                wishInput.style.borderColor = 'rgba(255,50,50,0.8)';
+                setTimeout(() => { wishInput.style.borderColor = ''; }, 800);
+                return;
             }
-            wishBox.textContent = `"${wish}"`;
-            wishBox.classList.add('shown');
+            triggerGrantWishCinematic(wish, responseEl, wishBox, grantedOverlay, grantedText, grantedSub);
         };
     }
 
     // Close button
     document.getElementById('wish-close').onclick = () => {
-        overlay.classList.remove('active');
-        lightningActive = false;
-        if (lCtx) lCtx.clearRect(0, 0, lCanvas.width, lCanvas.height);
-        // Reset balls
-        collectedBalls = 0;
-        document.getElementById('db-count').textContent = 0;
-        document.querySelectorAll('.db-ball').forEach(b => b.classList.remove('collected'));
+        closeShenron();
     };
+};
+
+const triggerGrantWishCinematic = (wish, responseEl, wishBox, grantedOverlay, grantedText, grantedSub) => {
+    const entry = getShenronResponse(wish);
+    const isReject = entry.type === 'reject';
+
+    // 1. Screen shake
+    document.body.classList.add('screen-shake');
+    setTimeout(() => document.body.classList.remove('screen-shake'), 600);
+
+    // 2. Lightning burst
+    lightningActive = true;
+    let burstCount = 0;
+    const burstInterval = setInterval(() => {
+        flashLightning();
+        playThunder();
+        burstCount++;
+        if (burstCount >= 4) {
+            clearInterval(burstInterval);
+            lightningActive = false;
+            if (lCtx) lCtx.clearRect(0, 0, lCanvas.width, lCanvas.height);
+        }
+    }, 120);
+
+    // 3. Eyes glow brighter
+    const eyes = document.querySelectorAll('.shenron-eye');
+    eyes.forEach(e => {
+        e.style.boxShadow = '0 0 40px #ff2200, 0 0 100px rgba(255,34,0,1), 0 0 200px rgba(255,0,0,0.8)';
+        e.style.width = '20px';
+        e.style.height = '12px';
+    });
+    setTimeout(() => {
+        eyes.forEach(e => { e.style.boxShadow = ''; e.style.width = ''; e.style.height = ''; });
+    }, 1500);
+
+    // 4. Ki charge sound
+    playKiCharge();
+    playShenronRoar();
+
+    // 5. Show granted overlay
+    setTimeout(() => {
+        if (isReject) {
+            grantedText.textContent = 'THIS WISH CANNOT BE GRANTED';
+            grantedText.style.color = '#ff4444';
+            grantedText.style.textShadow = '0 0 40px #ff4444, 0 0 80px red';
+            grantedSub.textContent = entry.response.replace(/"/g, '');
+        } else {
+            grantedText.textContent = 'YOUR WISH HAS BEEN GRANTED';
+            grantedText.style.color = '';
+            grantedText.style.textShadow = '';
+            grantedSub.textContent = entry.response.replace(/"/g, '');
+        }
+        grantedOverlay.classList.add('active');
+
+        // Flash the whole overlay
+        const overlay = document.getElementById('shenron-overlay');
+        overlay.style.filter = 'brightness(3)';
+        setTimeout(() => { overlay.style.filter = ''; }, 150);
+
+        // 6. After cinematic, show response in panel
+        setTimeout(() => {
+            grantedOverlay.classList.remove('active');
+            if (responseEl) {
+                responseEl.textContent = entry.response;
+                responseEl.style.color = isReject ? 'rgba(255,100,100,0.9)' : 'rgba(0,255,120,0.9)';
+                responseEl.style.opacity = '0';
+                setTimeout(() => { responseEl.style.opacity = '1'; }, 50);
+            }
+            wishBox.textContent = `"${wish}"`;
+            wishBox.classList.add('shown');
+
+            // 7. If granted (not rejected), trigger scatter after delay
+            if (!isReject) {
+                setTimeout(() => scatterDragonBalls(), 2000);
+            }
+        }, 2200);
+    }, 500);
+};
+
+const scatterDragonBalls = () => {
+    const container = document.getElementById('db-scatter-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const starCounts = ['★', '★★', '★★★', '★★★★', '★★★★★', '★★★★★★', '★★★★★★★'];
+    const balls = [];
+
+    for (let i = 0; i < 7; i++) {
+        const ball = document.createElement('div');
+        ball.className = 'scatter-ball';
+        ball.textContent = starCounts[i];
+        container.appendChild(ball);
+        balls.push(ball);
+    }
+
+    // Animate each ball flying outward
+    balls.forEach((ball, i) => {
+        const angle = (i / 7) * Math.PI * 2 - Math.PI / 2;
+        const dist = 40 + Math.random() * 30; // vw
+        const tx = Math.cos(angle) * dist;
+        const ty = Math.sin(angle) * dist;
+
+        setTimeout(() => {
+            ball.style.opacity = '1';
+            ball.style.transition = `transform 1.8s cubic-bezier(0.16,1,0.3,1), opacity 0.5s ease`;
+            ball.style.transform = `translate(calc(-50% + ${tx}vw), calc(-50% + ${ty}vh)) scale(1.5)`;
+            playFoundSound();
+        }, i * 80);
+
+        // Fade out and fly to stars
+        setTimeout(() => {
+            ball.style.transition = `transform 1.2s ease-in, opacity 0.8s ease`;
+            ball.style.transform = `translate(calc(-50% + ${tx * 3}vw), calc(-50% + ${ty * 3 - 50}vh)) scale(0.2)`;
+            ball.style.opacity = '0';
+        }, i * 80 + 1800);
+    });
+
+    // Show "collect again" message then close
+    setTimeout(() => {
+        const msg = document.createElement('div');
+        msg.style.cssText = `
+            position:absolute; inset:0; display:flex; flex-direction:column;
+            align-items:center; justify-content:center; z-index:70;
+            font-family:'JetBrains Mono',monospace; text-align:center;
+            animation: wish-box-appear 0.8s ease forwards;
+        `;
+        msg.innerHTML = `
+            <div style="font-size:clamp(1rem,3vw,1.8rem);font-weight:900;color:var(--primary-gold);
+                text-shadow:0 0 30px var(--primary-gold);letter-spacing:3px;margin-bottom:1rem;">
+                THE DRAGON BALLS HAVE SCATTERED...
+            </div>
+            <div style="font-size:0.8rem;color:rgba(0,255,120,0.7);letter-spacing:2px;">
+                Collect them again in one year...
+            </div>
+        `;
+        container.appendChild(msg);
+
+        setTimeout(() => {
+            msg.style.opacity = '0';
+            msg.style.transition = 'opacity 0.8s ease';
+            setTimeout(() => closeShenron(), 1000);
+        }, 3000);
+    }, 3500);
+};
+
+const closeShenron = () => {
+    const overlay = document.getElementById('shenron-overlay');
+    overlay.classList.remove('active');
+    lightningActive = false;
+    if (lCtx) lCtx.clearRect(0, 0, lCanvas.width, lCanvas.height);
+    // Reset balls
+    collectedBalls = 0;
+    document.getElementById('radar-count').textContent = 0;
+    document.querySelectorAll('.collection-slot').forEach(s => s.classList.remove('filled'));
+    radarBalls.forEach(b => {
+        b.collected = false;
+        b.element.style.opacity = '1';
+        b.element.style.transform = 'translate(-50%, -50%)';
+        b.element.style.pointerEvents = '';
+    });
+    document.getElementById('db-scatter-container').innerHTML = '';
+};
+
+// ── Wish sparks canvas system ──
+let wishSparksCtx = null;
+let wishSparksRAF = null;
+const wishSparksList = [];
+
+const initWishSparks = () => {
+    const canvas = document.getElementById('wish-sparks-canvas');
+    if (!canvas) return;
+    const panel = document.getElementById('shenron-content');
+    canvas.width = panel.offsetWidth;
+    canvas.height = panel.offsetHeight;
+    wishSparksCtx = canvas.getContext('2d');
+    animateWishSparks();
+};
+
+const spawnWishSparks = (inputEl) => {
+    if (!wishSparksCtx) return;
+    const canvas = document.getElementById('wish-sparks-canvas');
+    const panel = document.getElementById('shenron-content');
+    const inputRect = inputEl.getBoundingClientRect();
+    const panelRect = panel.getBoundingClientRect();
+    const x = inputRect.left - panelRect.left + inputRect.width * 0.5;
+    const y = inputRect.top - panelRect.top;
+
+    for (let i = 0; i < 4; i++) {
+        wishSparksList.push({
+            x, y,
+            vx: (Math.random() - 0.5) * 4,
+            vy: -(Math.random() * 3 + 1),
+            r: Math.random() * 3 + 1,
+            a: 1,
+            col: Math.random() > 0.5 ? '0,255,100' : '255,210,0',
+        });
+    }
+};
+
+const animateWishSparks = () => {
+    if (!wishSparksCtx) return;
+    const canvas = document.getElementById('wish-sparks-canvas');
+    wishSparksCtx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (let i = wishSparksList.length - 1; i >= 0; i--) {
+        const s = wishSparksList[i];
+        s.x += s.vx; s.y += s.vy; s.vy += 0.08; s.a -= 0.03;
+        if (s.a <= 0) { wishSparksList.splice(i, 1); continue; }
+        wishSparksCtx.beginPath();
+        wishSparksCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        wishSparksCtx.fillStyle = `rgba(${s.col},${s.a})`;
+        wishSparksCtx.fill();
+    }
+    wishSparksRAF = requestAnimationFrame(animateWishSparks);
 };
 
 // ---------------------------------------
