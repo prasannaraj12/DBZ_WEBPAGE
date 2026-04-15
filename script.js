@@ -1893,25 +1893,23 @@ window.runBattle = () => {
     const resultEl = document.getElementById('battle-result');
 
     if (i1 === null || i2 === null) {
-        resultEl.innerHTML = `<p style="color:#FF4444;font-family:'JetBrains Mono',monospace;font-size:0.85rem;">⚠ SELECT BOTH FIGHTERS FIRST</p>`;
+        resultEl.innerHTML = `<p style="color:#FF4444;font-family:'JetBrains Mono',monospace;font-size:0.85rem;">SELECT BOTH FIGHTERS FIRST</p>`;
         resultEl.classList.add('visible');
         return;
     }
     if (i1 === i2) {
-        resultEl.innerHTML = `<p style="color:#FF4444;font-family:'JetBrains Mono',monospace;font-size:0.85rem;">⚠ SELECT TWO DIFFERENT FIGHTERS</p>`;
+        resultEl.innerHTML = `<p style="color:#FF4444;font-family:'JetBrains Mono',monospace;font-size:0.85rem;">SELECT TWO DIFFERENT FIGHTERS</p>`;
         resultEl.classList.add('visible');
         return;
     }
 
     const f1 = fighters[i1], f2 = fighters[i2];
-    playKiCharge();
 
-    // Add some randomness — upsets happen
+    // Determine winner before cinematic
     const roll1 = f1.power * (0.85 + Math.random() * 0.3);
     const roll2 = f2.power * (0.85 + Math.random() * 0.3);
     const winner = roll1 >= roll2 ? f1 : f2;
     const loser  = winner === f1 ? f2 : f1;
-    const margin = Math.abs(roll1 - roll2);
     const pct    = Math.round((Math.min(roll1, roll2) / Math.max(roll1, roll2)) * 100);
 
     let verdict;
@@ -1919,16 +1917,241 @@ window.runBattle = () => {
     else if (pct > 75) verdict = `${winner.name} wins, but ${loser.name} landed some devastating blows.`;
     else verdict = `${winner.name} dominates. ${loser.name} never stood a chance.`;
 
-    resultEl.classList.remove('visible');
+    // Launch cinematic
+    launchBattleCinematic(f1, f2, winner, verdict);
+};
+
+const launchBattleCinematic = (f1, f2, winner, verdict) => {
+    const cin = document.getElementById('battle-cinematic');
+    const f1El = document.getElementById('bcin-f1');
+    const f2El = document.getElementById('bcin-f2');
+    const vsEl = document.getElementById('bcin-vs');
+    const clashEl = document.getElementById('bcin-clash');
+    const winnerWrap = document.getElementById('bcin-winner-wrap');
+    const winnerName = document.getElementById('bcin-winner-name');
+    const winnerQuote = document.getElementById('bcin-winner-quote');
+
+    // Populate fighter 1
+    document.getElementById('bcin-name1').textContent = f1.name.toUpperCase();
+    document.getElementById('bcin-power1').textContent = `PWR: ${f1.power.toLocaleString()}`;
+    document.getElementById('bcin-aura1').style.background = f1.color;
+    const sil1 = document.getElementById('bcin-sil1');
+    sil1.textContent = f1.name[0];
+    sil1.style.color = f1.color;
+    sil1.style.borderColor = f1.color;
+
+    // Populate fighter 2
+    document.getElementById('bcin-name2').textContent = f2.name.toUpperCase();
+    document.getElementById('bcin-power2').textContent = `PWR: ${f2.power.toLocaleString()}`;
+    document.getElementById('bcin-aura2').style.background = f2.color;
+    const sil2 = document.getElementById('bcin-sil2');
+    sil2.textContent = f2.name[0];
+    sil2.style.color = f2.color;
+    sil2.style.borderColor = f2.color;
+
+    // Reset state
+    f1El.className = 'battle-cin-fighter battle-cin-f1';
+    f2El.className = 'battle-cin-fighter battle-cin-f2';
+    vsEl.className = 'bcin-vs';
+    clashEl.className = 'bcin-clash';
+    winnerWrap.className = 'bcin-winner-wrap';
+    winnerName.style.animation = 'none';
+    winnerQuote.style.animation = 'none';
+    document.querySelector('.bcin-winner-label').style.animation = 'none';
+    document.querySelector('.bcin-close-btn').style.animation = 'none';
+
+    // Show overlay
+    cin.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    // Start canvas particles
+    startBattleCanvas();
+
+    // Step 1: Say "Tatakae!" (Fight! in Japanese) via speech
     setTimeout(() => {
+        speakBattle('たたかえ！', 'ja-JP', 1.2);
+        playKiCharge();
+    }, 200);
+
+    // Step 2: Fighters slide in from corners
+    setTimeout(() => {
+        f1El.classList.add('slide-in');
+        f2El.classList.add('slide-in');
+        playKiCharge();
+    }, 400);
+
+    // Step 3: VS appears
+    setTimeout(() => {
+        vsEl.classList.add('show');
+        playScouter();
+    }, 1200);
+
+    // Step 4: VS hides, fighters dash toward center
+    setTimeout(() => {
+        vsEl.classList.add('hide');
+        playKiCharge();
+    }, 2000);
+
+    setTimeout(() => {
+        f1El.classList.remove('slide-in');
+        f2El.classList.remove('slide-in');
+        f1El.classList.add('dash');
+        f2El.classList.add('dash');
+        playThunder();
+    }, 2200);
+
+    // Step 5: Clash impact
+    setTimeout(() => {
+        f1El.classList.remove('dash');
+        f2El.classList.remove('dash');
+        f1El.classList.add('recoil');
+        f2El.classList.add('recoil');
+        clashEl.classList.add('active');
+        cin.classList.add('flash');
+        setTimeout(() => cin.classList.remove('flash'), 200);
+        playClashSound();
+    }, 2420);
+
+    // Step 6: Show winner + announce name
+    setTimeout(() => {
+        clashEl.classList.remove('active');
+        // Reset animations by forcing reflow
+        winnerName.style.animation = 'none';
+        winnerQuote.style.animation = 'none';
+        document.querySelector('.bcin-winner-label').style.animation = 'none';
+        document.querySelector('.bcin-close-btn').style.animation = 'none';
+        void winnerName.offsetWidth;
+
+        winnerName.textContent = winner.name.toUpperCase();
+        winnerName.style.color = winner.color;
+        winnerName.style.textShadow = `0 0 60px ${winner.color}, 0 0 120px ${winner.color}`;
+        winnerQuote.textContent = `${winner.quote} — ${verdict}`;
+
+        winnerName.style.animation = '';
+        winnerQuote.style.animation = '';
+        document.querySelector('.bcin-winner-label').style.animation = '';
+        document.querySelector('.bcin-close-btn').style.animation = '';
+
+        winnerWrap.classList.add('show');
+        playKiCharge();
+
+        // Announce winner name via speech
+        setTimeout(() => {
+            speakBattle(`${winner.name} wins!`, 'en-US', 0.9);
+        }, 600);
+
+        // Also update the battle-result below for reference
+        const resultEl = document.getElementById('battle-result');
         resultEl.innerHTML = `
-            <div class="battle-winner">${winner.name} WINS</div>
+            <div class="battle-winner" style="color:${winner.color}">${winner.name} WINS</div>
             <div class="battle-verdict">${verdict}</div>
             <div class="battle-quote">${winner.quote}</div>
         `;
         resultEl.classList.add('visible');
-        playKiCharge();
-    }, 100);
+    }, 3200);
+};
+
+window.closeBattleCinematic = () => {
+    const cin = document.getElementById('battle-cinematic');
+    cin.classList.remove('active');
+    document.body.style.overflow = '';
+    stopBattleCanvas();
+};
+
+// ── Speech synthesis ──
+const speakBattle = (text, lang, rate = 1) => {
+    try {
+        if (!window.speechSynthesis) return;
+        window.speechSynthesis.cancel();
+        const utt = new SpeechSynthesisUtterance(text);
+        utt.lang = lang;
+        utt.rate = rate;
+        utt.pitch = 1.1;
+        utt.volume = 0.9;
+        window.speechSynthesis.speak(utt);
+    } catch(e) {}
+};
+
+// ── Clash sound ──
+const playClashSound = () => {
+    try {
+        const ctx = getAudioCtx();
+        // Impact thud
+        const buf = ctx.createBuffer(1, ctx.sampleRate * 0.3, ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < data.length; i++) {
+            data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 2);
+        }
+        const src = ctx.createBufferSource();
+        const gain = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass'; filter.frequency.value = 400;
+        src.buffer = buf;
+        src.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+        gain.gain.setValueAtTime(1.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+        src.start();
+
+        // High crack on top
+        const osc = ctx.createOscillator();
+        const g2 = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.connect(g2); g2.connect(ctx.destination);
+        osc.frequency.setValueAtTime(800, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.15);
+        g2.gain.setValueAtTime(0.4, ctx.currentTime);
+        g2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+        osc.start(); osc.stop(ctx.currentTime + 0.15);
+    } catch(e) {}
+};
+
+// ── Battle canvas particles ──
+let battleCanvasRAF = null;
+const startBattleCanvas = () => {
+    const canvas = document.getElementById('battle-canvas');
+    if (!canvas) return;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const ctx = canvas.getContext('2d');
+    const particles = [];
+
+    for (let i = 0; i < 80; i++) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            vx: (Math.random() - 0.5) * 3,
+            vy: (Math.random() - 0.5) * 3,
+            r: Math.random() * 3 + 0.5,
+            a: Math.random() * 0.6 + 0.2,
+            col: ['255,68,68','255,140,0','255,210,0','255,255,255'][Math.floor(Math.random()*4)],
+        });
+    }
+
+    const draw = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.save();
+        ctx.globalCompositeOperation = 'screen';
+        for (const p of particles) {
+            p.x += p.vx; p.y += p.vy;
+            if (p.x < 0) p.x = canvas.width;
+            if (p.x > canvas.width) p.x = 0;
+            if (p.y < 0) p.y = canvas.height;
+            if (p.y > canvas.height) p.y = 0;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${p.col},${p.a})`;
+            ctx.fill();
+        }
+        ctx.restore();
+        battleCanvasRAF = requestAnimationFrame(draw);
+    };
+    draw();
+};
+
+const stopBattleCanvas = () => {
+    if (battleCanvasRAF) { cancelAnimationFrame(battleCanvasRAF); battleCanvasRAF = null; }
+    const canvas = document.getElementById('battle-canvas');
+    if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
 };
 
 document.addEventListener('DOMContentLoaded', () => {
