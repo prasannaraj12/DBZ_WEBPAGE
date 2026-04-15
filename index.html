@@ -12,48 +12,99 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Initial Loading Screen with Spinning Dragon Ball -->
-    <div id="loader">
-        <div class="dragon-ball-spinner"></div>
+
+    <!-- Loading Screen -->
+    <div id="loader"><div class="dragon-ball-spinner"></div></div>
+
+    <!-- Shenron Overlay (hidden until all 7 balls collected) -->
+    <!-- Cinematic Shenron Summon Overlay -->
+    <div id="shenron-overlay" class="shenron-overlay">
+
+        <!-- Step 1: Dark sky bg -->
+        <div class="shenron-sky"></div>
+
+        <!-- Step 2: Lightning canvas -->
+        <canvas id="lightning-canvas" class="lightning-canvas"></canvas>
+
+        <!-- Animated fog/cloud layers -->
+        <div class="shenron-fog fog-1"></div>
+        <div class="shenron-fog fog-2"></div>
+        <div class="shenron-fog fog-3"></div>
+
+        <!-- Step 3: Shenron SVG Dragon -->
+        <div class="shenron-body-wrap" id="shenron-body">
+            <div class="shenron-glow-ring"></div>
+            <img src="assets/shenron.png" alt="Shenron the Eternal Dragon" class="shenron-img">
+        </div>
+
+        <!-- Step 4: Wish content -->
+        <div class="shenron-content" id="shenron-content">
+            <h2 class="shenron-title">SHENRON HAS BEEN SUMMONED!</h2>
+            <p class="shenron-sub">Speak your wish... the Eternal Dragon is listening.</p>
+
+            <!-- Wish input -->
+            <div class="wish-input-wrap">
+                <input type="text" id="wish-input" class="wish-input" placeholder="Type your wish..." maxlength="60">
+                <button class="wish-grant-btn" id="wish-grant-btn">⚡ GRANT WISH</button>
+            </div>
+
+            <!-- Shenron response -->
+            <div class="shenron-response" id="shenron-response"></div>
+
+            <div class="wish-box" id="wish-box"></div>
+            <button class="wish-close-btn" id="wish-close">✕ Dismiss</button>
+        </div>
     </div>
-    
+
     <nav class="navbar">
         <div class="logo">DRAGON BALL <span>LEGENDS</span></div>
         <ul class="nav-links">
             <li><a href="#home">Home</a></li>
-            <li><a href="#about">News</a></li>
             <li><a href="#warriors">Characters</a></li>
-            <li><a href="#lore">Lore</a></li>
+            <li><a href="#dragonballs">Dragon Balls</a></li>
+            <li><a href="#scanner">Power Level</a></li>
+            <li><a href="#saga">Saga</a></li>
         </ul>
         <div class="nav-accent-cut"></div>
     </nav>
 
-    <!-- DB Official Inspired News Ticker -->
     <div class="news-ticker">
         <div class="ticker-content">
             <span class="ticker-item"><span class="ticker-tag">UPDATE</span> Dragon Ball Legends 5th Anniversary is Here!</span>
             <span class="ticker-item"><span class="ticker-tag">SUMMON</span> Ultra Instinct Goku joins the fight!</span>
             <span class="ticker-item"><span class="ticker-tag">EVENT</span> Co-op Battle: Defeat Jiren now live!</span>
-            <!-- Duplicate for infinite scroll -->
             <span class="ticker-item"><span class="ticker-tag">UPDATE</span> Dragon Ball Legends 5th Anniversary is Here!</span>
             <span class="ticker-item"><span class="ticker-tag">SUMMON</span> Ultra Instinct Goku joins the fight!</span>
             <span class="ticker-item"><span class="ticker-tag">EVENT</span> Co-op Battle: Defeat Jiren now live!</span>
         </div>
     </div>
 
-    <!-- Manga Halftone Pattern -->
     <div class="manga-halftone"></div>
 
     <main class="smooth-scroll-wrapper">
+
+        <!-- ═══ HERO ═══ -->
         <section id="home" class="hero">
-            <div class="spline-container">
-                <!-- Spline 3D Embed -->
-                <iframe src="https://my.spline.design/krillincopy-L9P9YhL2T3nI9r8KBrSOqz6q/" frameborder="0" width="100%" height="100%"></iframe>
-            </div>
-            
-            <div class="hero-content">
-                <h1 class="glitch-text" data-text="DRAGON BALL LEGENDS">DRAGON BALL LEGENDS</h1>
-                <p class="subtitle">Awaken the Power Within</p>
+
+            <!-- Full-screen cinematic canvas -->
+            <canvas id="hero-canvas" class="hero-canvas"></canvas>
+
+            <!-- Scanlines overlay -->
+            <div class="hero-scanlines"></div>
+            <!-- Vignette -->
+            <div class="hero-vignette"></div>
+
+            <!-- Content overlay -->
+            <div class="hero-content" id="hero-tilt">
+                <div class="tilt-inner">
+                    <div class="hero-eyebrow">⚡ THE LEGEND NEVER ENDS ⚡</div>
+                    <h1 class="glitch-text" data-text="DRAGON BALL LEGENDS">DRAGON BALL LEGENDS</h1>
+                    <p class="subtitle">Awaken the Power Within</p>
+                    <div class="hero-cta-row">
+                        <a href="#warriors" class="hero-btn">EXPLORE WARRIORS</a>
+                        <a href="#dragonballs" class="hero-btn hero-btn-gold">🐉 COLLECT DRAGON BALLS</a>
+                    </div>
+                </div>
                 <div class="scroll-indicator">
                     <span>Scroll</span>
                     <div class="mouse"></div>
@@ -61,15 +112,14 @@
             </div>
         </section>
 
+        <!-- ═══ ABOUT / SCOUTER ═══ -->
         <section id="about" class="about-section parallax-section">
             <div class="bg-layer bg-layer-1"></div>
-            <!-- Aesthetic grid lines -->
             <div class="grid-lines"></div>
-            
             <div class="container content-grid">
                 <div class="text-block" data-speed="1.5">
                     <h2>THE LEGEND <span class="text-orange">LIVES ON</span></h2>
-                    <p>Experience the ultimate battle for the universe. The legendary warriors clash in 3D precision, pushing past their limits and transcending into gods. The epic saga brought to life.</p>
+                    <p>Experience the ultimate battle for the universe. The legendary warriors clash in 3D precision, pushing past their limits and transcending into gods.</p>
                 </div>
                 <div class="image-block" data-speed="0.5">
                     <div class="glass-card scouter-target">
@@ -78,22 +128,18 @@
                             <div class="scouter-number"><span id="power-counter">0</span></div>
                         </div>
                         <p>Target acquired. Power levels accelerating beyond measurable thresholds.</p>
-                        <div class="power-bar">
-                            <div class="power-fill"></div>
-                        </div>
+                        <div class="power-bar"><div class="power-fill"></div></div>
                     </div>
                 </div>
             </div>
         </section>
 
+        <!-- ═══ CHARACTERS ═══ -->
         <section id="warriors" class="warriors-section parallax-section">
-            <!-- Sparks Container for Super Saiyan Aura effect -->
             <div id="sparks-container" class="sparks-container"></div>
-            
             <div class="bg-layer bg-layer-2"></div>
-            <div class="container relative-z" style="width: 100%; max-width: 100%; padding: 0 2rem;">
+            <div class="container relative-z" style="width:100%;max-width:100%;padding:0 2rem;">
                 <h2 class="section-title">LEGENDS</h2>
-                <!-- Category Filter Chips -->
                 <div class="char-filter-bar" id="char-filters">
                     <button class="char-chip active" data-filter="all">ALL</button>
                     <button class="char-chip" data-filter="Z Fighter">🔵 HEROES</button>
@@ -102,57 +148,158 @@
                     <button class="char-chip" data-filter="Freelancer">⚡ FREELANCER</button>
                 </div>
                 <div class="cards-wrapper" id="dynamic-characters">
-                    <h3 style="text-align:center; color: var(--primary-cyan); font-family: 'JetBrains Mono', monospace; min-width:300px;">Gathering Ki... Loading all Legends</h3>
+                    <h3 style="color:var(--primary-cyan);font-family:'JetBrains Mono',monospace;min-width:300px;">Gathering Ki...</h3>
                 </div>
             </div>
         </section>
 
+        <!-- ═══ LORE / DRAGON RADAR ═══ -->
         <section id="lore" class="lore-section parallax-section">
             <div class="container content-grid">
                 <div class="image-block" data-speed="0.4">
-                    <!-- Dragon Radar CSS Art -->
                     <div class="dragon-radar">
                         <div class="radar-glass">
                             <div class="radar-scanner"></div>
                             <div class="radar-grid"></div>
-                            <div class="dragon-blip" style="top: 30%; left: 40%;"></div>
-                            <div class="dragon-blip" style="top: 60%; left: 70%;"></div>
-                            <div class="dragon-blip" style="top: 20%; left: 80%;"></div>
+                            <div class="dragon-blip" style="top:30%;left:40%;"></div>
+                            <div class="dragon-blip" style="top:60%;left:70%;"></div>
+                            <div class="dragon-blip" style="top:20%;left:80%;"></div>
                         </div>
                         <div class="radar-button"></div>
                     </div>
                 </div>
                 <div class="text-block" data-speed="1.8">
                     <h2>THE MYSTIC <span class="text-yellow">DRAGON BALLS</span></h2>
-                    <p>Scattered across the cosmos, these amber spheres await those brave enough to seek them. Gather all seven, speak the incantation, and the Eternal Dragon Shenron shall rise to grant your deepest desire. But be warned—actions have cosmic consequences.</p>
+                    <p>Scattered across the cosmos, these amber spheres await those brave enough to seek them. Gather all seven and summon the Eternal Dragon.</p>
                 </div>
             </div>
         </section>
 
-        <!-- @DB_official_en Fan Treat Gallery Section -->
+        <!-- ═══ 🐉 DRAGON BALL COLLECTION ═══ -->
+        <section id="dragonballs" class="parallax-section dragonball-section">
+            <div class="container relative-z" style="text-align:center;">
+                <h2 class="section-title">COLLECT THE <span style="color:var(--primary-gold);-webkit-text-stroke:0px;transform:none;">DRAGON BALLS</span></h2>
+                <p class="db-instruction">Click all 7 Dragon Balls to summon Shenron and receive a wish!</p>
+                <div class="dragonballs-grid" id="dragonballs-grid">
+                    <div class="db-ball" data-ball="1" onclick="collectBall(this)"><div class="db-inner"><span class="db-stars">★</span></div></div>
+                    <div class="db-ball" data-ball="2" onclick="collectBall(this)"><div class="db-inner"><span class="db-stars">★★</span></div></div>
+                    <div class="db-ball" data-ball="3" onclick="collectBall(this)"><div class="db-inner"><span class="db-stars">★★★</span></div></div>
+                    <div class="db-ball" data-ball="4" onclick="collectBall(this)"><div class="db-inner"><span class="db-stars">★★★★</span></div></div>
+                    <div class="db-ball" data-ball="5" onclick="collectBall(this)"><div class="db-inner"><span class="db-stars">★★★★★</span></div></div>
+                    <div class="db-ball" data-ball="6" onclick="collectBall(this)"><div class="db-inner"><span class="db-stars">★★★★★★</span></div></div>
+                    <div class="db-ball" data-ball="7" onclick="collectBall(this)"><div class="db-inner"><span class="db-stars">★★★★★★★</span></div></div>
+                </div>
+                <div class="db-counter"><span id="db-count">0</span> / 7 Dragon Balls Collected</div>
+            </div>
+        </section>
+
+        <!-- ═══ ⚡ POWER LEVEL SCANNER ═══ -->
+        <section id="scanner" class="parallax-section scanner-section">
+            <div class="container relative-z" style="text-align:center;max-width:700px;margin:auto;">
+                <h2 class="section-title">POWER LEVEL <span style="color:var(--accent-green);-webkit-text-stroke:0px;transform:none;">SCANNER</span></h2>
+                <p style="color:var(--text-muted);margin-bottom:2rem;font-family:'JetBrains Mono',monospace;">Enter your name to reveal your Saiyan power level</p>
+                <div class="scanner-input-wrap">
+                    <input type="text" id="scanner-input" class="scanner-input" placeholder="Enter your warrior name..." maxlength="30" onkeydown="if(event.key==='Enter') scanPower()">
+                    <button class="scanner-btn" onclick="scanPower()">⚡ SCAN</button>
+                </div>
+                <div class="scanner-result" id="scanner-result">
+                    <div class="scouter-display">
+                        <div class="scan-label">POWER LEVEL</div>
+                        <div class="scan-value" id="scan-value">---</div>
+                        <div class="scan-rank" id="scan-rank"></div>
+                        <div class="scan-quote" id="scan-quote"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ 📜 DBZ SAGA TIMELINE ═══ -->
+        <section id="saga" class="parallax-section saga-section">
+            <div style="width:100%;padding:0 2rem;">
+                <h2 class="section-title" style="text-align:center;margin-bottom:3rem;">THE DBZ <span style="color:var(--primary-orange);-webkit-text-stroke:0px;transform:none;">SAGA</span></h2>
+                <div class="saga-timeline">
+                    <div class="saga-card" style="--saga-color:#FF6600;">
+                        <div class="saga-num">01</div>
+                        <h3 class="saga-name">SAIYAN SAGA</h3>
+                        <div class="saga-villain">Raditz · Nappa · Vegeta</div>
+                        <p class="saga-desc">Goku discovers his Saiyan heritage. The Z Fighters unite to face alien invaders. A new era begins.</p>
+                        <div class="saga-year">Age 761</div>
+                    </div>
+                    <div class="saga-card" style="--saga-color:#9B59B6;">
+                        <div class="saga-num">02</div>
+                        <h3 class="saga-name">NAMEK SAGA</h3>
+                        <div class="saga-villain">Frieza · Ginyu Force</div>
+                        <p class="saga-desc">Planet Namek. Frieza reveals his final form. Goku's rage ignites the legendary Super Saiyan awakening.</p>
+                        <div class="saga-year">Age 762</div>
+                    </div>
+                    <div class="saga-card" style="--saga-color:#27AE60;">
+                        <div class="saga-num">03</div>
+                        <h3 class="saga-name">CELL SAGA</h3>
+                        <div class="saga-villain">Cell · Dr. Gero · Androids</div>
+                        <p class="saga-desc">A bio-android from the future reaches perfection. Teen Gohan's hidden power erupts at the Cell Games.</p>
+                        <div class="saga-year">Age 767</div>
+                    </div>
+                    <div class="saga-card" style="--saga-color:#E91E63;">
+                        <div class="saga-num">04</div>
+                        <h3 class="saga-name">BUU SAGA</h3>
+                        <div class="saga-villain">Majin Buu · Babidi · Dabura</div>
+                        <p class="saga-desc">Ancient evil Majin Buu awakens. Vegito and Gogeta clash. The fate of existence hangs by a Spirit Bomb.</p>
+                        <div class="saga-year">Age 774</div>
+                    </div>
+                    <div class="saga-card" style="--saga-color:#00BCD4;">
+                        <div class="saga-num">05</div>
+                        <h3 class="saga-name">TOURNAMENT OF POWER</h3>
+                        <div class="saga-villain">Jiren · Universe 11</div>
+                        <p class="saga-desc">8 universes clash. Goku's Ultra Instinct awakens. Only one universe can survive the Tournament of Power.</p>
+                        <div class="saga-year">Age 780</div>
+                    </div>
+                    <div class="saga-card" style="--saga-color:#F1C40F;">
+                        <div class="saga-num">06</div>
+                        <h3 class="saga-name">SUPER HERO ARC</h3>
+                        <div class="saga-villain">Cell Max · Gammas</div>
+                        <p class="saga-desc">Gohan and Piccolo take center stage. Beast Gohan and Orange Piccolo are born as new legends.</p>
+                        <div class="saga-year">Age 784</div>
+                    </div>
+                    <div class="saga-card" style="--saga-color:#FF4444;">
+                        <div class="saga-num">07</div>
+                        <h3 class="saga-name">DAIMA</h3>
+                        <div class="saga-villain">Demon Realm</div>
+                        <p class="saga-desc">Goku and friends are turned small by a wish on the Super Dragon Balls. A new adventure in the Demon Realm.</p>
+                        <div class="saga-year">Age 785+</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ GALLERY ═══ -->
         <section id="gallery" class="gallery-section parallax-section">
             <div class="container relative-z">
-                <h2 class="section-title">OFFICIAL <span style="color:var(--primary-cyan); -webkit-text-stroke: 0px;">ARCHIVES</span></h2>
+                <h2 class="section-title">OFFICIAL <span style="color:var(--primary-cyan);-webkit-text-stroke:0px;transform:none;">ARCHIVES</span></h2>
                 <div class="gallery-grid">
                     <div class="gallery-item"><img src="assets/img1.png" alt="DB Official Artwork 1" class="gallery-img"></div>
                     <div class="gallery-item"><img src="assets/img2.png" alt="DB Official Artwork 2" class="gallery-img"></div>
                     <div class="gallery-item"><img src="assets/img3.png" alt="DB Official Artwork 3" class="gallery-img"></div>
                 </div>
-                <div class="twitter-plug" style="text-align: center; margin-top: 4rem;">
-                    <a href="https://x.com/DB_official_en" target="_blank" class="twitter-btn" style="padding: 15px 30px; background: var(--primary-cyan); color: #000; font-family: 'JetBrains Mono', monospace; font-weight: 700; text-decoration: none; display: inline-block; clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);">SEE MORE ON X (@DB_official_en)</a>
+                <div style="text-align:center;margin-top:4rem;">
+                    <a href="https://x.com/DB_official_en" target="_blank" class="summon-btn">SEE MORE ON X (@DB_official_en)</a>
                 </div>
             </div>
         </section>
 
+        <!-- ═══ FOOTER ═══ -->
         <footer class="footer">
             <div class="container">
-                <h2>Ready to power up?</h2>
-                <p>Designed for the ultimate fans by Antigravity.</p>
+                <h2 style="-webkit-text-stroke:0;transform:none;font-style:normal;color:var(--primary-cyan);">SUMMON YOUR ULTIMATE WARRIOR</h2>
+                <p style="font-size:1rem;color:var(--text-muted);margin:1rem 0 2.5rem;font-family:'JetBrains Mono',monospace;text-transform:none;font-style:normal;">The Dragon Balls await. Your legend starts here.</p>
+                <div style="display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap;margin-bottom:3rem;">
+                    <a href="#home" class="summon-btn">⚡ ENTER THE MULTIVERSE</a>
+                    <a href="#dragonballs" class="summon-btn summon-btn-gold">🐉 START SUMMONING</a>
+                </div>
+                <p style="color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:0.7rem;text-transform:uppercase;letter-spacing:3px;">Dragon Ball Legends Fan Experience · Designed for the ultimate fans</p>
             </div>
         </footer>
     </main>
 
-    <!-- GSAP for Animations and Parallax -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <script src="script.js"></script>
