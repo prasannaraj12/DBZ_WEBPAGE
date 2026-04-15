@@ -419,10 +419,12 @@ const initRadar = () => {
     const blipsContainer = document.getElementById('radar-blips');
     if (!blipsContainer) return;
 
-    // Place blips well inside the radar — spread across 25–75% of radius
+    // Place blips inside the radar circle — max dist 36% from center (leaves room for 30px ball)
     radarBalls = Array.from({ length: 7 }, (_, i) => {
-        const angle = (i / 7) * Math.PI * 2 + (Math.random() - 0.5) * 0.6;
-        const distPct = 22 + Math.random() * 48; // 22–70% from center
+        const angle = (i / 7) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+        // distPct is distance from center as % of the element's half-width
+        // Safe max = 38 so ball edge (ball is 30px, radar-glass ~400px → ball = 7.5%) stays inside
+        const distPct = 15 + Math.random() * 23; // 15–38% from center
 
         const x = 50 + Math.cos(angle) * distPct;
         const y = 50 + Math.sin(angle) * distPct;
